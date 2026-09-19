@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Car Details</title>
+</head>
+
+<body>
+
+    <h1>
+        {{ car.brand }} {{ car.model }}
+    </h1>
+
+    <p>
+        Owner:
+        {{ car.owner.username }}
+    </p>
+
+    <p>
+        Year:
+        {{ car.year }}
+    </p>
+
+    <p>
+        License Plate:
+        {{ car.license_plate }}
+    </p>
+
+    <p>
+        Mileage:
+        {{ car.mileage }} km
+    </p>
+
+    <p>
+        Color:
+        {{ car.color }}
+    </p>
+
+    <p>
+        Created:
+        {{ car.created_at }}
+    </p>
+
+    <hr>
+
+    <a href="{% url 'car_update' car.id %}">
+        Edit
+    </a>
+
+    |
+
+    <a href="{% url 'car_delete' car.id %}">
+        Delete
+    </a>
+
+    |
+
+    <a href="{% url 'car_list' %}">
+        Back to Cars
+    </a>
+
+</body>
+</html>
