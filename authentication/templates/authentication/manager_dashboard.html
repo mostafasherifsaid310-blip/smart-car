@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manager Dashboard</title>
+</head>
+
+<body>
+
+    <h1>Manager Dashboard</h1>
+
+    <p>
+        Welcome {{ user.username }}
+    </p>
+
+    <p>
+        You have permission to access the manager area.
+    </p>
+
+    <a href="{% url 'profile' %}">
+        Back to Profile
+    </a>
+
+</body>
+</html>
