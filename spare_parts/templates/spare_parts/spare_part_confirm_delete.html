@@ -1,37 +1,334 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Spare Part</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Delete Spare Part</h1>
+{% block title %}
+Delete Spare Part | Smart Car
+{% endblock %}
 
-<p>
-    Are you sure you want to delete:
-</p>
 
-<p>
-    <strong>
-        {{ part.name }}
-    </strong>
-</p>
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Confirm card
+       ============================================================ */
 
-<form method="post">
+    .confirm-wrap {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+    }
 
-    {% csrf_token %}
+    .confirm-card {
+        width: 100%;
+        max-width: 560px;
 
-    <button type="submit">
-        Yes, Delete
-    </button>
+        padding: 34px 32px 28px;
 
-</form>
+        background: #ffffff;
 
-<br>
+        border: 1px solid #e6eaf0;
+        border-radius: 18px;
 
-<a href="{% url 'spare_part_detail' part.id %}">
-    Cancel
-</a>
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 18px 40px -18px rgba(16, 24, 40, .28);
 
-</body>
-</html>
+        text-align: center;
+
+        animation: rise .35s ease backwards;
+    }
+
+    /* Warning icon */
+    .confirm-icon {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 20px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 20px;
+
+        color: #dc2626;
+
+        background: linear-gradient(135deg, #fee2e2, #fef2f2);
+        border: 1px solid #fecaca;
+
+        box-shadow: 0 10px 24px -12px rgba(220, 38, 38, .55);
+    }
+
+    .confirm-icon svg { width: 32px; height: 32px; }
+
+
+    /* Title & text */
+    .confirm-title {
+        margin: 0 0 10px;
+
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+
+        color: #0f172a;
+    }
+
+    .confirm-text {
+        margin: 0 0 6px;
+
+        font-size: 14.5px;
+        line-height: 1.6;
+
+        color: #6b7280;
+    }
+
+
+    /* Spare part summary box */
+    .record-summary {
+        margin: 22px 0 18px;
+        padding: 16px 18px;
+
+        text-align: left;
+
+        background: #f8fafc;
+
+        border: 1px solid #eef2f7;
+        border-radius: 12px;
+    }
+
+    .record-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 8px 0;
+    }
+
+    .record-row + .record-row {
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    .record-row .ico {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 10px;
+
+        color: #7c3aed;
+        background: linear-gradient(135deg, #f3e8ff, #eef0ff);
+        border: 1px solid #e6eaf0;
+    }
+
+    .record-row .ico svg { width: 17px; height: 17px; }
+
+    .record-row .info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+        min-width: 0;
+    }
+
+    .record-row .info small {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+
+        color: #94a3b8;
+    }
+
+    .record-row .info strong {
+        font-size: 14.5px;
+        font-weight: 600;
+        color: #0f172a;
+
+        word-break: break-word;
+    }
+
+
+    /* Warning note */
+    .confirm-warn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        margin: 0 0 24px;
+        padding: 11px 14px;
+
+        border-radius: 10px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #b91c1c;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+
+    .confirm-warn svg { width: 15px; height: 15px; flex: 0 0 15px; }
+
+
+    /* Actions */
+    .confirm-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        padding-top: 22px;
+
+        border-top: 1px solid #eef2f7;
+    }
+
+    .confirm-actions .btn {
+        padding: 11px 22px;
+        font-size: 14px;
+    }
+
+    .confirm-actions .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Danger button gets a stronger presence */
+    .confirm-actions .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 12px 24px -12px rgba(220, 38, 38, .95);
+    }
+
+    .confirm-actions .btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+    }
+
+    /* Cancel button — soft outline */
+    .confirm-actions .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    .confirm-actions .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+
+    /* Motion */
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .confirm-card { animation: none; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="confirm-wrap">
+
+    <div class="confirm-card">
+
+        <!-- Warning icon -->
+        <div class="confirm-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                <path d="M10 11v6"/>
+                <path d="M14 11v6"/>
+            </svg>
+        </div>
+
+
+        <!-- Title -->
+        <h1 class="confirm-title">
+            Delete Spare Part
+        </h1>
+
+
+        <!-- Question -->
+        <p class="confirm-text">
+            Are you sure you want to delete this spare part?
+        </p>
+
+
+        <!-- Spare part summary -->
+        <div class="record-summary">
+
+            <!-- Spare part identity -->
+            <div class="record-row">
+
+                <span class="ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                        <path d="M12 22.08V12"/>
+                    </svg>
+                </span>
+
+                <span class="info">
+                    <small>Spare Part</small>
+                    <strong>{{ spare_part.name }}</strong>
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Warning note -->
+        <div class="confirm-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+            </svg>
+            This action cannot be undone.
+        </div>
+
+
+        <!-- Form -->
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="confirm-actions">
+
+                <button type="submit" class="btn btn-danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                    </svg>
+                    Yes, Delete
+                </button>
+
+                <a href="{% url 'spare_part_detail' spare_part.id %}" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                    </svg>
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

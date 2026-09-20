@@ -4,80 +4,108 @@ from django.shortcuts import get_object_or_404, redirect, render
 from authentication.utils import is_admin, is_manager
 from .forms import SparePartForm
 from .models import SparePart
+from django.db.models.deletion import ProtectedError
+
+
+def management_access_required(user):
+    return is_admin(user) or is_manager(user)
 
 
 @login_required
 def spare_part_list(request):
 
-    parts = SparePart.objects.all().order_by("name")
+    if not management_access_required(request.user):
+        return HttpResponseForbidden(
+            "You do not have permission to manage spare parts.")
 
-    return render(request,"spare_parts/spare_part_list.html",{"parts": parts})
+    spare_parts = SparePart.objects.all().order_by("name")
+
+    return render(request,
+        "spare_parts/spare_part_list.html",
+        {"spare_parts": spare_parts,},)
+
 
 @login_required
-def spare_part_detail(request, part_id):
+def spare_part_detail(request, spare_part_id):
 
-    part = get_object_or_404(SparePart,id=part_id)
+    if not management_access_required(request.user):
+        return HttpResponseForbidden(
+            "You do not have permission to view spare parts.")
 
-    return render(request,"spare_parts/spare_part_detail.html",{"part": part})
+    spare_part = get_object_or_404(SparePart,id=spare_part_id,)
 
+    return render(request,
+        "spare_parts/spare_part_detail.html",
+        {"spare_part": spare_part,},)
 
 @login_required
 def spare_part_create(request):
 
-    if not is_admin(request.user) and not is_manager(request.user):
-        return HttpResponseForbidden("You do not have permission to add spare parts.")
+    if not management_access_required(request.user):
+        return HttpResponseForbidden(
+            "You do not have permission to create spare parts."
+        )
 
     if request.method == "POST":
 
         form = SparePartForm(request.POST)
 
         if form.is_valid():
-
             form.save()
 
             return redirect("spare_part_list")
+
     else:
         form = SparePartForm()
-        
-    return render(
-        request,"spare_parts/spare_part_form.html",{"form": form,"title": "Add Spare Part"})
+
+    return render(request,
+        "spare_parts/spare_part_form.html",
+        {"form": form,"title": "Add Spare Part",},)
+
 
 @login_required
-def spare_part_update(request, part_id):
+def spare_part_update(request, spare_part_id):
 
-    if not is_admin(request.user) and not is_manager(request.user):
-        return HttpResponseForbidden("You do not have permission to edit spare parts.")
+    if not management_access_required(request.user):
+        return HttpResponseForbidden(
+            "You do not have permission to edit spare parts.")
 
-    part = get_object_or_404(SparePart,id=part_id)
+    spare_part = get_object_or_404(SparePart,id=spare_part_id,)
 
     if request.method == "POST":
 
-        form = SparePartForm(request.POST,instance=part)
+        form = SparePartForm(request.POST,instance=spare_part,)
 
         if form.is_valid():
-
             form.save()
 
-            return redirect("spare_part_detail",part_id=part.id)
+            return redirect("spare_part_detail",spare_part_id=spare_part.id,)
+
     else:
+        form = SparePartForm(instance=spare_part,)
 
-        form = SparePartForm(instance=part)
+    return render(request,
+        "spare_parts/spare_part_form.html",
+        {"form": form,"title": "Edit Spare Part",},)
 
-    return render(request,"spare_parts/spare_part_form.html",{"form": form,"title": "Edit Spare Part"})
 
 @login_required
-def spare_part_delete(request, part_id):
+def spare_part_delete(request, spare_part_id):
+    if not management_access_required(request.user):
+        return HttpResponseForbidden("You do not have permission to delete spare parts.")
 
-    if not is_admin(request.user) and not is_manager(request.user):
-        return HttpResponseForbidden(
-            "You do not have permission to delete spare parts.")
-
-    part = get_object_or_404(SparePart,id=part_id)
+    spare_part = get_object_or_404(SparePart, id=spare_part_id)
 
     if request.method == "POST":
+        try:
+            spare_part.delete()
+            return redirect("spare_part_list")
 
-        part.delete()
+        except ProtectedError:
+            return render(request,
+                "spare_parts/spare_part_confirm_delete.html",
+                {"spare_part": spare_part,
+                    "delete_error": ("This spare part cannot be deleted because "
+                        "it is linked to existing maintenance records."),},status=400,)
 
-        return redirect("spare_part_list")
-
-    return render(request,"spare_parts/spare_part_confirm_delete.html",{"part": part})
+    return render(request,"spare_parts/spare_part_confirm_delete.html",{"spare_part": spare_part},)

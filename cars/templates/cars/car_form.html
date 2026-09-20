@@ -1,30 +1,340 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+{{ title }} | Smart Car
+{% endblock %}
 
-    <h1>
-        {{ title }}
-    </h1>
 
-    <form method="POST">
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Form card
+       ============================================================ */
+
+    .form-card {
+        max-width: 780px;
+
+        padding: 30px 32px 26px;
+
+        background: #ffffff;
+
+        border: 1px solid #e6eaf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 14px 32px -16px rgba(16, 24, 40, .22);
+    }
+
+    /* Top accent bar */
+    .form-card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .form-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 12px;
+
+        color: #4f46e5;
+        background: linear-gradient(135deg, #eef0ff, #e6f5ff);
+        border: 1px solid #e6eaf0;
+    }
+
+    .form-icon svg { width: 22px; height: 22px; }
+
+    .form-card-head h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: .1px;
+        color: #0f172a;
+    }
+
+    .form-card-head p {
+        margin: 3px 0 0;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* ============================================================
+       Django's form.as_p → styled grid
+       ============================================================ */
+
+    .form-card form p {
+        display: flex;
+        flex-direction: column;
+
+        margin: 0 0 18px;
+    }
+
+    /* Two-column grid on wider screens */
+    @media (min-width: 620px) {
+        .form-card form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 22px;
+            row-gap: 4px;
+        }
+
+        /* Fields that should span full width */
+        .form-card form p:has(textarea),
+        .form-card form p:has(input[type="hidden"]),
+        .form-card form p.full-width,
+        .form-card form .actions {
+            grid-column: 1 / -1;
+        }
+    }
+
+
+    /* Label */
+    .form-card form label {
+        display: block;
+
+        margin-bottom: 7px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+
+        color: #475569;
+    }
+
+    /* Inputs & selects & textareas */
+    .form-card form input[type="text"],
+    .form-card form input[type="number"],
+    .form-card form input[type="email"],
+    .form-card form input[type="date"],
+    .form-card form input[type="time"],
+    .form-card form input[type="url"],
+    .form-card form input[type="password"],
+    .form-card form select,
+    .form-card form textarea {
+        width: 100%;
+
+        padding: 11px 14px;
+
+        font-family: inherit;
+        font-size: 14.5px;
+        color: #0f172a;
+
+        background: #f8fafc;
+
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+
+        transition:
+            border-color .18s ease,
+            box-shadow .18s ease,
+            background .18s ease;
+    }
+
+    .form-card form textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    /* Placeholder */
+    .form-card form input::placeholder,
+    .form-card form textarea::placeholder {
+        color: #94a3b8;
+    }
+
+    /* Focus state */
+    .form-card form input:focus,
+    .form-card form select:focus,
+    .form-card form textarea:focus {
+        outline: none;
+
+        background: #ffffff;
+
+        border-color: #a5b4fc;
+
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, .12);
+    }
+
+    /* Checkbox layout fix */
+    .form-card form input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #4f46e5;
+        cursor: pointer;
+    }
+
+    /* Help text */
+    .form-card form .helptext {
+        display: block;
+
+        margin-top: 6px;
+
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Error list */
+    .form-card form .errorlist {
+        margin: 6px 0 0;
+        padding: 0;
+
+        list-style: none;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #b91c1c;
+    }
+
+    .form-card form .errorlist li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-card form .errorlist li::before {
+        content: "⚠";
+        font-size: 13px;
+    }
+
+    /* Highlight invalid inputs */
+    .form-card form input:invalid:not(:placeholder-shown),
+    .form-card form .errorlist ~ input,
+    .form-card form .errorlist ~ select,
+    .form-card form .errorlist ~ textarea {
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+
+
+    /* ============================================================
+       Actions row
+       ============================================================ */
+
+    .form-card form .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        margin-top: 6px;
+        padding-top: 22px;
+
+        border-top: 1px solid #eef2f7;
+    }
+
+    .form-card form .actions .btn {
+        padding: 11px 22px;
+        font-size: 14px;
+    }
+
+    .form-card form .actions .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Cancel — softer style */
+    .form-card form .actions .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+
+        box-shadow: none;
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-card form .actions .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <h1>{{ title }}</h1>
+
+    <p>
+        Enter the vehicle information below.
+    </p>
+
+</div>
+
+
+<!-- ============================================================
+     Form card
+     ============================================================ -->
+
+<div class="form-card">
+
+    <div class="form-card-head">
+
+        <span class="form-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 17h14"/>
+                <path d="M4 17v-4.2a2 2 0 0 1 .2-.9l2-4.4A2 2 0 0 1 8 6.3h8a2 2 0 0 1 1.8 1.2l2 4.4a2 2 0 0 1 .2.9V17"/>
+                <path d="M4 17v2h2.5v-2"/>
+                <path d="M17.5 17v2H20v-2"/>
+                <circle cx="8" cy="17" r="1.4"/>
+                <circle cx="16" cy="17" r="1.4"/>
+            </svg>
+        </span>
+
+        <div>
+            <h3>Vehicle Information</h3>
+            <p>Fill in the details and save your changes.</p>
+        </div>
+
+    </div>
+
+
+    <form method="post">
 
         {% csrf_token %}
 
         {{ form.as_p }}
 
-        <button type="submit">
-            Save
-        </button>
+        <div class="actions">
+
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12l5 5L20 7"/>
+                </svg>
+                Save
+            </button>
+
+            <a href="{% url 'car_list' %}" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+                Cancel
+            </a>
+
+        </div>
 
     </form>
 
-    <a href="{% url 'car_list' %}">
-        Cancel
-    </a>
+</div>
 
-</body>
-</html>
+{% endblock %}

@@ -8,7 +8,7 @@ from .utils import is_admin, is_manager,role_required
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("dashboard")
 
     if request.method=="POST":
         form=RegistrationForm(request.POST)
@@ -16,7 +16,7 @@ def register_view(request):
         if form.is_valid():
             user=form.save()
             login(request, user)
-            return redirect("profile")
+            return redirect("dashboard")
     else:
         form=RegistrationForm()
 
@@ -24,7 +24,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("dashboard")
 
     if request.method=="POST":
         form=AuthenticationForm(request,data=request.POST)
@@ -32,7 +32,7 @@ def login_view(request):
         if form.is_valid():
             user=form.get_user()
             login(request, user)
-            return redirect("profile")
+            return redirect("dashboard")
     else:
         form=AuthenticationForm()
 

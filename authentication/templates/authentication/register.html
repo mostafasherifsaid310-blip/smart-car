@@ -1,29 +1,675 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | Smart Car</title>
+
+    <style>
+        /* ============================================================
+           Design tokens (mirrors base.html)
+           ============================================================ */
+
+        :root {
+            --bg:          #f1f4f9;
+            --surface:     #ffffff;
+            --ink:         #0f172a;
+            --muted:       #6b7280;
+            --line:        #e6eaf0;
+
+            --brand:       #4f46e5;
+            --brand-2:     #7c3aed;
+            --brand-soft:  #eef0ff;
+
+            --danger:      #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: "Segoe UI", system-ui, -apple-system,
+                         "Helvetica Neue", Arial, sans-serif;
+
+            color: var(--ink);
+
+            background: var(--bg);
+        }
+
+
+        /* ============================================================
+           Split-screen layout
+           ============================================================ */
+
+        .auth {
+            display: grid;
+            grid-template-columns: 1fr;
+            min-height: 100vh;
+        }
+
+        @media (min-width: 960px) {
+            .auth { grid-template-columns: 1.05fr 1fr; }
+        }
+
+
+        /* ============================================================
+           Left branding panel (desktop only)
+           ============================================================ */
+
+        .auth-brand {
+            display: none;
+
+            position: relative;
+            overflow: hidden;
+
+            padding: 48px;
+
+            color: #fff;
+
+            background:
+                radial-gradient(700px 380px at 12% -10%,
+                                rgba(56, 189, 248, .35), transparent 60%),
+                radial-gradient(680px 380px at 90% 110%,
+                                rgba(129, 140, 248, .40), transparent 60%),
+                linear-gradient(140deg, #0b1220 0%, #1e1b4b 55%, #4f46e5 100%);
+        }
+
+        @media (min-width: 960px) {
+            .auth-brand {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+        }
+
+        /* Brand mark */
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+
+            align-self: flex-start;
+
+            padding: 10px 16px 10px 10px;
+
+            border-radius: 14px;
+
+            color: #fff;
+
+            background: rgba(255, 255, 255, .10);
+            border: 1px solid rgba(255, 255, 255, .20);
+
+            backdrop-filter: blur(8px);
+        }
+
+        .brand-mark-icon {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 11px;
+
+            background:
+                linear-gradient(135deg,
+                                rgba(255, 255, 255, .28),
+                                rgba(255, 255, 255, .08));
+
+            border: 1px solid rgba(255, 255, 255, .28);
+        }
+
+        .brand-mark-icon svg { width: 20px; height: 20px; }
+
+        .brand-mark-text strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .brand-mark-text small {
+            display: block;
+
+            margin-top: 2px;
+
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+
+            color: rgba(255, 255, 255, .60);
+        }
+
+
+        /* Headline */
+        .brand-copy { max-width: 460px; }
+
+        .brand-copy h1 {
+            margin: 0 0 16px;
+
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -.02em;
+        }
+
+        .brand-copy h1 span {
+            background: linear-gradient(135deg, #a5b4fc, #7dd3fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-copy p {
+            font-size: 15.5px;
+            line-height: 1.65;
+
+            color: rgba(255, 255, 255, .72);
+        }
+
+        /* Feature bullets */
+        .brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+
+            margin-top: 30px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            font-size: 14px;
+            color: rgba(255, 255, 255, .82);
+        }
+
+        .feature-dot {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 9px;
+
+            color: #d1fae5;
+
+            background: rgba(34, 197, 94, .18);
+            border: 1px solid rgba(34, 197, 94, .38);
+        }
+
+        .feature-dot svg { width: 15px; height: 15px; }
+
+        /* Footer note */
+        .brand-foot {
+            font-size: 12.5px;
+            color: rgba(255, 255, 255, .45);
+        }
+
+
+        /* ============================================================
+           Right form panel
+           ============================================================ */
+
+        .auth-form-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 40px 22px;
+
+            background:
+                radial-gradient(700px 380px at 100% 0%,
+                                #e6ecff 0%, transparent 55%),
+                radial-gradient(600px 340px at 0% 100%,
+                                #e2f2ff 0%, transparent 55%),
+                var(--bg);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+
+            padding: 34px 32px 28px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 20px;
+
+            box-shadow:
+                0 1px 2px rgba(16, 24, 40, .06),
+                0 24px 48px -20px rgba(16, 24, 40, .28);
+
+            animation: rise .4s ease backwards;
+        }
+
+
+        /* Small logo chip — visible on mobile only */
+        .mobile-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+
+            margin-bottom: 22px;
+            padding: 8px 14px 8px 8px;
+
+            border-radius: 12px;
+
+            background: var(--brand-soft);
+            border: 1px solid #dbe3ff;
+        }
+
+        @media (min-width: 960px) {
+            .mobile-logo { display: none; }
+        }
+
+        .mobile-logo .chip-ico {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 9px;
+
+            color: #fff;
+
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+
+        .mobile-logo .chip-ico svg { width: 16px; height: 16px; }
+
+        .mobile-logo strong {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+
+        /* Card header */
+        .auth-head { margin-bottom: 24px; }
+
+        .auth-head h2 {
+            margin: 0;
+
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+
+            color: var(--ink);
+        }
+
+        .auth-head p {
+            margin: 6px 0 0;
+
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+
+        /* ============================================================
+           form.as_p → styled fields
+           ============================================================ */
+
+        .auth-card form p {
+            display: flex;
+            flex-direction: column;
+
+            margin: 0 0 16px;
+        }
+
+        .auth-card form label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+
+            color: #475569;
+        }
+
+        .auth-card form input[type="text"],
+        .auth-card form input[type="password"],
+        .auth-card form input[type="email"] {
+            width: 100%;
+
+            padding: 12px 14px;
+
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--ink);
+
+            background: #f8fafc;
+
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+
+            transition:
+                border-color .18s ease,
+                box-shadow .18s ease,
+                background .18s ease;
+        }
+
+        .auth-card form input::placeholder {
+            color: #94a3b8;
+        }
+
+        .auth-card form input:focus {
+            outline: none;
+
+            background: #ffffff;
+
+            border-color: #a5b4fc;
+
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, .14);
+        }
+
+        /* Help text */
+        .auth-card form .helptext {
+            display: block;
+
+            margin-top: 6px;
+
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Error list */
+        .auth-card form .errorlist {
+            margin: 6px 0 0;
+            padding: 0;
+
+            list-style: none;
+
+            font-size: 12.5px;
+            font-weight: 600;
+
+            color: #b91c1c;
+        }
+
+        .auth-card form .errorlist li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auth-card form .errorlist li::before {
+            content: "⚠";
+            font-size: 13px;
+        }
+
+        /* Non-field errors get a bigger banner */
+        .auth-card form > .errorlist {
+            margin: 0 0 18px;
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+
+        /* Register button */
+        .btn-register {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+
+            width: 100%;
+
+            margin-top: 8px;
+            padding: 13px 22px;
+
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .01em;
+
+            color: #fff;
+
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+
+            border: none;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            box-shadow: 0 14px 28px -12px rgba(79, 70, 229, .95);
+
+            transition: transform .15s ease, box-shadow .2s ease,
+                        background .2s ease;
+        }
+
+        .btn-register svg { width: 18px; height: 18px; }
+
+        .btn-register:hover {
+            transform: translateY(-1px);
+
+            background: linear-gradient(135deg, #4338ca, #6d28d9);
+
+            box-shadow: 0 18px 32px -12px rgba(79, 70, 229, .95);
+        }
+
+        .btn-register:active { transform: translateY(0); }
+
+
+        /* Login prompt */
+        .auth-alt {
+            margin: 22px 0 0;
+            padding-top: 20px;
+
+            text-align: center;
+
+            font-size: 14px;
+            color: var(--muted);
+
+            border-top: 1px solid var(--line);
+        }
+
+        .auth-alt a {
+            margin-left: 4px;
+
+            font-weight: 700;
+
+            color: var(--brand);
+            text-decoration: none;
+
+            border-bottom: 1.5px solid transparent;
+            transition: border-color .18s ease, color .18s ease;
+        }
+
+        .auth-alt a:hover {
+            color: var(--brand-2);
+            border-bottom-color: var(--brand-2);
+        }
+
+
+        /* Motion */
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .001ms !important;
+                animation-delay: 0ms !important;
+                transition-duration: .001ms !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Create Account</h1>
+<div class="auth">
 
-    <form method="POST">
-        {% csrf_token %}
+    <!-- ============================================================
+         Left branding panel (desktop only)
+         ============================================================ -->
 
-        {{ form.as_p }}
+    <aside class="auth-brand">
 
-        <button type="submit">
-            Register
-        </button>
-    </form>
+        <div class="brand-mark">
 
-    <p>
-        Already have an account?
-        <a href="{% url 'login' %}">
-            Login
-        </a>
-    </p>
+            <span class="brand-mark-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 17h14"/>
+                    <path d="M4 17v-4.2a2 2 0 0 1 .2-.9l2-4.4A2 2 0 0 1 8 6.3h8a2 2 0 0 1 1.8 1.2l2 4.4a2 2 0 0 1 .2.9V17"/>
+                    <path d="M4 17v2h2.5v-2"/>
+                    <path d="M17.5 17v2H20v-2"/>
+                    <circle cx="8" cy="17" r="1.4"/>
+                    <circle cx="16" cy="17" r="1.4"/>
+                </svg>
+            </span>
+
+            <span class="brand-mark-text">
+                <strong>Smart Car</strong>
+                <small>Service Suite</small>
+            </span>
+
+        </div>
+
+
+        <div class="brand-copy">
+
+            <h1>
+                Join the smarter<br>
+                <span>way to service cars.</span>
+            </h1>
+
+            <p>
+                Create your free account and take full control of
+                vehicles, maintenance, appointments, and spare parts.
+            </p>
+
+
+            <div class="brand-features">
+
+                <div class="feature">
+                    <span class="feature-dot">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12l5 5L20 7"/>
+                        </svg>
+                    </span>
+                    Free to get started
+                </div>
+
+                <div class="feature">
+                    <span class="feature-dot">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12l5 5L20 7"/>
+                        </svg>
+                    </span>
+                    Full service history tracking
+                </div>
+
+                <div class="feature">
+                    <span class="feature-dot">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12l5 5L20 7"/>
+                        </svg>
+                    </span>
+                    Secure &amp; private by default
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="brand-foot">
+            &copy; Smart Car Service Suite
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         Right form panel
+         ============================================================ -->
+
+    <main class="auth-form-wrap">
+
+        <div class="auth-card">
+
+            <!-- Mobile-only logo chip -->
+            <div class="mobile-logo">
+                <span class="chip-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 17h14"/>
+                        <path d="M4 17v-4.2a2 2 0 0 1 .2-.9l2-4.4A2 2 0 0 1 8 6.3h8a2 2 0 0 1 1.8 1.2l2 4.4a2 2 0 0 1 .2.9V17"/>
+                    </svg>
+                </span>
+                <strong>Smart Car</strong>
+            </div>
+
+
+            <!-- Header -->
+            <div class="auth-head">
+                <h2>Create Account</h2>
+                <p>Fill in the form below to get started.</p>
+            </div>
+
+
+            <!-- Form -->
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <button type="submit" class="btn-register">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <path d="M20 8v6"/>
+                        <path d="M23 11h-6"/>
+                    </svg>
+                    Register
+                </button>
+
+            </form>
+
+
+            <!-- Login prompt -->
+            <p class="auth-alt">
+                Already have an account?
+                <a href="{% url 'login' %}">
+                    Login
+                </a>
+            </p>
+
+        </div>
+
+    </main>
+
+</div>
 
 </body>
 </html>

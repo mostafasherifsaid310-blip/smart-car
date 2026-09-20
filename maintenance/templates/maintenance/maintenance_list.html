@@ -1,103 +1,482 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Maintenance Records</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Maintenance Records</h1>
+{% block title %}
+Maintenance | Smart Car
+{% endblock %}
 
-<a href="{% url 'maintenance_create' %}">
-    Add Maintenance Record
-</a>
 
-<hr>
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Page header with action button
+       ============================================================ */
 
-{% if records %}
+    .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
 
-<table border="1" cellpadding="10">
+    /* Counter pill next to title */
+    .pill {
+        display: inline-block;
 
-    <tr>
-        <th>Car</th>
-        <th>Technician</th>
-        <th>Service</th>
-        <th>Date</th>
-        <th>Mileage</th>
-        <th>Cost</th>
-        <th>Status</th>
-        <th>Actions</th>
-    </tr>
+        margin-left: 10px;
 
-    {% for record in records %}
+        padding: 3px 11px;
 
-    <tr>
+        border-radius: 999px;
 
-        <td>
-            {{ record.car.brand }}
-            {{ record.car.model }}
-        </td>
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        vertical-align: middle;
 
-        <td>
-            {{ record.technician.name }}
-        </td>
+        color: #6b7280;
+        background: #f1f5f9;
+        border: 1px solid #e6eaf0;
+    }
 
-        <td>
-            {{ record.service_type }}
-        </td>
 
-        <td>
-            {{ record.service_date }}
-        </td>
+    /* ============================================================
+       Table enhancements
+       ============================================================ */
 
-        <td>
-            {{ record.mileage }}
-        </td>
+    /* Service cell with icon */
+    .service-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
-        <td>
-            {{ record.cost }}
-        </td>
+    .service-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
 
-        <td>
-            {{ record.get_status_display }}
-        </td>
+        display: grid;
+        place-items: center;
 
-        <td>
+        border-radius: 11px;
 
-            <a href="{% url 'maintenance_detail' record.id %}">
-                View
-            </a>
+        color: #0ea5e9;
+        background: linear-gradient(135deg, #e6f5ff, #eef0ff);
 
-            |
+        border: 1px solid #e6eaf0;
+    }
 
-            <a href="{% url 'maintenance_update' record.id %}">
-                Edit
-            </a>
+    .service-avatar svg { width: 19px; height: 19px; }
 
-            |
+    .service-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
 
-            <a href="{% url 'maintenance_delete' record.id %}">
-                Delete
-            </a>
+    .service-name strong {
+        font-weight: 600;
+        color: #0f172a;
+    }
 
-        </td>
+    .service-name small {
+        font-size: 12px;
+        color: #6b7280;
+    }
 
-    </tr>
+    /* Car chip */
+    .car-chip {
+        display: inline-block;
 
-    {% endfor %}
+        padding: 4px 11px;
 
-</table>
+        border-radius: 8px;
 
-{% else %}
+        font-size: 12.5px;
+        font-weight: 600;
 
-<p>No maintenance records found.</p>
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
 
-{% endif %}
+    /* Technician cell */
+    .tech {
+        display: flex;
+        align-items: center;
+        gap: 8px;
 
-<br>
+        color: #334155;
+    }
 
-<a href="{% url 'car_list' %}">
-    Back to Cars
-</a>
+    .tech svg {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
 
-</body>
-</html>
+        color: #94a3b8;
+    }
+
+    /* Numeric cells */
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Cost chip */
+    .cost {
+        font-weight: 700;
+        color: #0f172a;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Status badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 4px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+
+        color: #475569;
+        background: #eef2f7;
+        border: 1px solid #e2e8f0;
+    }
+
+    .badge::before {
+        content: "";
+
+        width: 6px;
+        height: 6px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+    }
+
+    .badge--green { color: #047857; background: #e7f8f0; border-color: #c6ecdb; }
+    .badge--amber { color: #b45309; background: #fff4e0; border-color: #fbe0b4; }
+    .badge--blue  { color: #0369a1; background: #e6f5ff; border-color: #bfe6fb; }
+    .badge--red   { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+
+
+    /* ============================================================
+       Small action buttons
+       ============================================================ */
+
+    .btn-sm {
+        padding: 6px 12px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        border-radius: 8px;
+    }
+
+    .btn-sm svg { width: 14px; height: 14px; }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* "View" — outline style */
+    .btn-outline {
+        color: #334155;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-outline:hover {
+        color: #4f46e5;
+        border-color: #c7d2fe;
+        background: #eef0ff;
+    }
+
+
+    /* ============================================================
+       Empty state
+       ============================================================ */
+
+    .empty-cell {
+        padding: 50px 20px !important;
+
+        text-align: center;
+
+        color: #6b7280 !important;
+        font-size: 14.5px;
+    }
+
+    .empty-cell svg {
+        display: block;
+        margin: 0 auto 12px;
+
+        width: 40px;
+        height: 40px;
+
+        opacity: .4;
+    }
+
+    .empty-cell strong {
+        display: block;
+
+        margin-bottom: 4px;
+
+        font-size: 15px;
+        color: #334155;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <div>
+
+        <h1>
+            Maintenance Records
+
+            {% if maintenance_records %}
+                <span class="pill">{{ maintenance_records|length }}</span>
+            {% endif %}
+        </h1>
+
+        <p>
+            Track vehicle maintenance and service history.
+        </p>
+
+    </div>
+
+
+    <a href="{% url 'maintenance_create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        Add Maintenance
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     Maintenance table
+     ============================================================ -->
+
+<div class="table-container">
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Car</th>
+                <th>Service</th>
+                <th>Technician</th>
+                <th>Date</th>
+                <th>Cost</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for record in records %}
+
+            <tr>
+
+                <!-- Car -->
+                <td>
+                    <span class="car-chip">{{ record.car }}</span>
+                </td>
+
+                <!-- Service type with icon -->
+                <td>
+
+                    <div class="service-cell">
+
+                        <span class="service-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </span>
+
+                        <span class="service-name">
+                            <strong>{{ record.service_type }}</strong>
+                            <small>Service</small>
+                        </span>
+
+                    </div>
+
+                </td>
+
+                <!-- Technician -->
+                <td>
+
+                    <span class="tech">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        {{ record.technician }}
+                    </span>
+
+                </td>
+
+                <!-- Date -->
+                <td class="num">{{ record.service_date }}</td>
+
+                <!-- Cost -->
+                <td>
+                    <span class="cost">{{ record.cost }}</span>
+                </td>
+
+                <!-- Status -->
+                <td>
+                    <span class="badge">{{ record.get_status_display }}</span>
+                </td>
+
+                <!-- Actions -->
+                <td>
+
+                    <div class="actions">
+
+                        <a href="{% url 'maintenance_detail' record.id %}"
+                           class="btn btn-sm btn-outline">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+
+                            View
+
+                        </a>
+
+                        <a href="{% url 'maintenance_update' record.id %}"
+                           class="btn btn-sm btn-primary">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-cell">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+
+                    <strong>No maintenance records found</strong>
+                    Start by adding your first maintenance record.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       Colour-code status badges by their label text.
+       Works with any wording coming from get_status_display().
+       ============================================================ */
+
+    (function () {
+
+        var COLORS = {
+            green: [
+                "completed", "complete", "done", "paid", "approved",
+                "delivered", "active", "available", "in stock", "fixed"
+            ],
+            blue: [
+                "in progress", "in-progress", "ongoing", "scheduled",
+                "confirmed", "booked", "assigned", "processing"
+            ],
+            amber: [
+                "pending", "waiting", "on hold", "on-hold",
+                "delayed", "partial", "draft", "new"
+            ],
+            red: [
+                "cancelled", "canceled", "rejected", "failed",
+                "overdue", "urgent", "expired", "out of stock"
+            ]
+        };
+
+        var lookup = {};
+
+        Object.keys(COLORS).forEach(function (color) {
+            COLORS[color].forEach(function (word) {
+                lookup[word] = color;
+            });
+        });
+
+        document.querySelectorAll(".badge").forEach(function (badge) {
+
+            var text = badge.textContent.trim().toLowerCase();
+
+            if (!text) return;
+
+            var color = lookup[text];
+
+            if (!color) {
+                Object.keys(lookup).some(function (word) {
+                    if (text.indexOf(word) !== -1) {
+                        color = lookup[word];
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            if (color) {
+                badge.classList.add("badge--" + color);
+            }
+        });
+
+    })();
+</script>
+{% endblock %}

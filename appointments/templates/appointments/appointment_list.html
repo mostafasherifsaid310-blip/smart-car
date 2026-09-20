@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block title %}
+Appointments | Smart Car
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Page header with action button
+       ============================================================ */
+
+    .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
+
+    /* Counter pill next to title */
+    .pill {
+        display: inline-block;
+
+        margin-left: 10px;
+
+        padding: 3px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        vertical-align: middle;
+
+        color: #6b7280;
+        background: #f1f5f9;
+        border: 1px solid #e6eaf0;
+    }
+
+
+    /* ============================================================
+       Table enhancements
+       ============================================================ */
+
+    /* Car chip */
+    .car-chip {
+        display: inline-block;
+
+        padding: 4px 11px;
+
+        border-radius: 8px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Technician cell */
+    .tech {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #334155;
+    }
+
+    .tech svg {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
+
+        color: #94a3b8;
+    }
+
+    /* Service cell with icon */
+    .service-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .service-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 11px;
+
+        color: #10b981;
+        background: linear-gradient(135deg, #e6f8f1, #e6f5ff);
+
+        border: 1px solid #e6eaf0;
+    }
+
+    .service-avatar svg { width: 19px; height: 19px; }
+
+    .service-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+
+    .service-name strong {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .service-name small {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Date + time cells */
+    .date-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #334155;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .date-cell svg {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
+
+        color: #94a3b8;
+    }
+
+    /* Time chip */
+    .time-chip {
+        display: inline-block;
+
+        padding: 4px 11px;
+
+        border-radius: 8px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: .02em;
+
+        color: #065f46;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    /* Numeric */
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Status badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 4px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+
+        color: #475569;
+        background: #eef2f7;
+        border: 1px solid #e2e8f0;
+    }
+
+    .badge::before {
+        content: "";
+
+        width: 6px;
+        height: 6px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+    }
+
+    .badge--green { color: #047857; background: #e7f8f0; border-color: #c6ecdb; }
+    .badge--amber { color: #b45309; background: #fff4e0; border-color: #fbe0b4; }
+    .badge--blue  { color: #0369a1; background: #e6f5ff; border-color: #bfe6fb; }
+    .badge--red   { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+
+
+    /* ============================================================
+       Small action buttons
+       ============================================================ */
+
+    .btn-sm {
+        padding: 6px 12px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        border-radius: 8px;
+    }
+
+    .btn-sm svg { width: 14px; height: 14px; }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* "View" — outline style */
+    .btn-outline {
+        color: #334155;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-outline:hover {
+        color: #4f46e5;
+        border-color: #c7d2fe;
+        background: #eef0ff;
+    }
+
+
+    /* ============================================================
+       Empty state
+       ============================================================ */
+
+    .empty-cell {
+        padding: 50px 20px !important;
+
+        text-align: center;
+
+        color: #6b7280 !important;
+        font-size: 14.5px;
+    }
+
+    .empty-cell svg {
+        display: block;
+        margin: 0 auto 12px;
+
+        width: 40px;
+        height: 40px;
+
+        opacity: .4;
+    }
+
+    .empty-cell strong {
+        display: block;
+
+        margin-bottom: 4px;
+
+        font-size: 15px;
+        color: #334155;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <div>
+
+        <h1>
+            Appointments
+
+            {% if appointments %}
+                <span class="pill">{{ appointments|length }}</span>
+            {% endif %}
+        </h1>
+
+        <p>
+            Manage vehicle service appointments.
+        </p>
+
+    </div>
+
+
+    <a href="{% url 'appointment_create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        Add Appointment
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     Appointments table
+     ============================================================ -->
+
+<div class="table-container">
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Car</th>
+                <th>Technician</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for appointment in appointments %}
+
+            <tr>
+
+                <!-- Car -->
+                <td>
+                    <span class="car-chip">{{ appointment.car }}</span>
+                </td>
+
+                <!-- Technician -->
+                <td>
+
+                    <span class="tech">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        {{ appointment.technician }}
+                    </span>
+
+                </td>
+
+                <!-- Service with icon -->
+                <td>
+
+                    <div class="service-cell">
+
+                        <span class="service-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </span>
+
+                        <span class="service-name">
+                            <strong>{{ appointment.service_type }}</strong>
+                            <small>Service</small>
+                        </span>
+
+                    </div>
+
+                </td>
+
+                <!-- Date -->
+                <td class="num">
+                    <span class="date-cell">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                            <path d="M8 2.5v4"/>
+                            <path d="M16 2.5v4"/>
+                            <path d="M3 10h18"/>
+                        </svg>
+                        {{ appointment.appointment_date }}
+                    </span>
+                </td>
+
+                <!-- Time -->
+                <td>
+                    <span class="time-chip">{{ appointment.appointment_time }}</span>
+                </td>
+
+                <!-- Status -->
+                <td>
+                    <span class="badge">{{ appointment.get_status_display }}</span>
+                </td>
+
+                <!-- Actions -->
+                <td>
+
+                    <div class="actions">
+
+                        <a href="{% url 'appointment_detail' appointment.id %}"
+                           class="btn btn-sm btn-outline">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+
+                            View
+
+                        </a>
+
+                        <a href="{% url 'appointment_update' appointment.id %}"
+                           class="btn btn-sm btn-primary">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-cell">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                        <path d="M8 2.5v4"/>
+                        <path d="M16 2.5v4"/>
+                        <path d="M3 10h18"/>
+                    </svg>
+
+                    <strong>No appointments found</strong>
+                    Start by scheduling your first appointment.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       Colour-code status badges by their label text.
+       Works with any wording coming from get_status_display().
+       ============================================================ */
+
+    (function () {
+
+        var COLORS = {
+            green: [
+                "completed", "complete", "done", "paid", "approved",
+                "delivered", "active", "available", "confirmed", "scheduled"
+            ],
+            blue: [
+                "in progress", "in-progress", "ongoing",
+                "booked", "assigned", "processing"
+            ],
+            amber: [
+                "pending", "waiting", "on hold", "on-hold",
+                "delayed", "partial", "draft", "new", "rescheduled"
+            ],
+            red: [
+                "cancelled", "canceled", "rejected", "failed",
+                "overdue", "urgent", "expired", "no show", "no-show"
+            ]
+        };
+
+        var lookup = {};
+
+        Object.keys(COLORS).forEach(function (color) {
+            COLORS[color].forEach(function (word) {
+                lookup[word] = color;
+            });
+        });
+
+        document.querySelectorAll(".badge").forEach(function (badge) {
+
+            var text = badge.textContent.trim().toLowerCase();
+
+            if (!text) return;
+
+            var color = lookup[text];
+
+            if (!color) {
+                Object.keys(lookup).some(function (word) {
+                    if (text.indexOf(word) !== -1) {
+                        color = lookup[word];
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            if (color) {
+                badge.classList.add("badge--" + color);
+            }
+        });
+
+    })();
+</script>
+{% endblock %}

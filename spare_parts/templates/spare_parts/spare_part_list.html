@@ -1,115 +1,480 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Spare Parts</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Spare Parts Inventory</h1>
+{% block title %}
+Spare Parts | Smart Car
+{% endblock %}
 
-{% if user.groups.all %}
 
-    {% if user.is_superuser %}
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Page header with action button
+       ============================================================ */
 
-        <a href="{% url 'spare_part_create' %}">
-            Add Spare Part
-        </a>
+    .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
 
-    {% endif %}
+    /* Counter pill next to title */
+    .pill {
+        display: inline-block;
 
-{% endif %}
+        margin-left: 10px;
 
-<hr>
+        padding: 3px 11px;
 
-{% if parts %}
+        border-radius: 999px;
 
-<table border="1" cellpadding="10">
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        vertical-align: middle;
 
-    <tr>
-        <th>Name</th>
-        <th>Part Number</th>
-        <th>Price</th>
-        <th>Quantity</th>
-        <th>Minimum Stock</th>
-        <th>Stock Status</th>
-        <th>Actions</th>
-    </tr>
+        color: #6b7280;
+        background: #f1f5f9;
+        border: 1px solid #e6eaf0;
+    }
 
-    {% for part in parts %}
 
-    <tr>
+    /* ============================================================
+       Table enhancements
+       ============================================================ */
 
-        <td>
-            {{ part.name }}
-        </td>
+    /* Part name cell with icon */
+    .part-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
-        <td>
-            {{ part.part_number }}
-        </td>
+    .part-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
 
-        <td>
-            {{ part.price }}
-        </td>
+        display: grid;
+        place-items: center;
 
-        <td>
-            {{ part.quantity }}
-        </td>
+        border-radius: 11px;
 
-        <td>
-            {{ part.minimum_stock }}
-        </td>
+        color: #7c3aed;
+        background: linear-gradient(135deg, #f3e8ff, #eef0ff);
 
-        <td>
+        border: 1px solid #e6eaf0;
+    }
 
-            {% if part.quantity <= part.minimum_stock %}
-                LOW STOCK
-            {% else %}
-                Available
+    .part-avatar svg { width: 19px; height: 19px; }
+
+    .part-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+
+    .part-name strong {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .part-name small {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Part number chip */
+    .part-num {
+        display: inline-block;
+
+        padding: 3px 10px;
+
+        border-radius: 8px;
+
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: .04em;
+
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Numeric */
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Price chip */
+    .price-chip {
+        display: inline-block;
+
+        padding: 4px 11px;
+
+        border-radius: 9px;
+
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #065f46;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    /* Quantity chip — normal */
+    .qty-chip {
+        display: inline-block;
+
+        min-width: 40px;
+
+        padding: 4px 11px;
+
+        text-align: center;
+
+        border-radius: 9px;
+
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #1e3a8a;
+        background: #eef2ff;
+        border: 1px solid #dbe3ff;
+    }
+
+    /* Quantity chip — low stock variant */
+    .qty-chip--low {
+        color: #b91c1c;
+        background: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    /* Minimum stock value */
+    .min-stock {
+        font-weight: 600;
+        color: #64748b;
+        font-variant-numeric: tabular-nums;
+    }
+
+
+    /* ============================================================
+       Stock status badges
+       ============================================================ */
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        padding: 5px 13px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .stock-badge::before {
+        content: "";
+
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+    }
+
+    /* In Stock — green with pulse dot */
+    .stock-badge--in {
+        color: #047857;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    .stock-badge--in::before {
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, .22);
+    }
+
+    /* Low Stock — red with warning */
+    .stock-badge--low {
+        color: #b91c1c;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+
+    .stock-badge--low::before {
+        background: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, .22);
+    }
+
+
+    /* ============================================================
+       Small action buttons
+       ============================================================ */
+
+    .btn-sm {
+        padding: 6px 12px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        border-radius: 8px;
+    }
+
+    .btn-sm svg { width: 14px; height: 14px; }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* "View" — outline style */
+    .btn-outline {
+        color: #334155;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-outline:hover {
+        color: #7c3aed;
+        border-color: #ddd6fe;
+        background: #f3e8ff;
+    }
+
+
+    /* ============================================================
+       Empty state
+       ============================================================ */
+
+    .empty-cell {
+        padding: 50px 20px !important;
+
+        text-align: center;
+
+        color: #6b7280 !important;
+        font-size: 14.5px;
+    }
+
+    .empty-cell svg {
+        display: block;
+        margin: 0 auto 12px;
+
+        width: 40px;
+        height: 40px;
+
+        opacity: .4;
+    }
+
+    .empty-cell strong {
+        display: block;
+
+        margin-bottom: 4px;
+
+        font-size: 15px;
+        color: #334155;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <div>
+
+        <h1>
+            Spare Parts
+
+            {% if spare_parts %}
+                <span class="pill">{{ spare_parts|length }}</span>
             {% endif %}
+        </h1>
 
-        </td>
+        <p>
+            Manage spare parts inventory and stock levels.
+        </p>
 
-        <td>
+    </div>
 
-    <a href="{% url 'spare_part_detail' part.id %}">
-        View
+
+    <a href="{% url 'spare_part_create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        Add Spare Part
     </a>
 
-    {% if user.is_superuser or user.groups.all.0.name == "Admin" or user.groups.all.0.name == "Manager" %}
+</div>
 
-        |
 
-        <a href="{% url 'spare_part_update' part.id %}">
-            Edit
-        </a>
+<!-- ============================================================
+     Spare parts table
+     ============================================================ -->
 
-        |
+<div class="table-container">
 
-        <a href="{% url 'spare_part_delete' part.id %}">
-            Delete
-        </a>
+    <table>
 
-    {% endif %}
+        <thead>
 
-</td>
+            <tr>
+                <th>Name</th>
+                <th>Part Number</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Minimum Stock</th>
+                <th>Stock Status</th>
+                <th>Actions</th>
+            </tr>
 
-    </tr>
+        </thead>
 
-    {% endfor %}
+        <tbody>
 
-</table>
+            {% for part in spare_parts %}
 
-{% else %}
+            <tr>
 
-<p>No spare parts found.</p>
+                <!-- Name with icon -->
+                <td>
 
-{% endif %}
+                    <div class="part-cell">
 
-<br>
+                        <span class="part-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                                <path d="M12 22.08V12"/>
+                            </svg>
+                        </span>
 
-<a href="{% url 'maintenance_list' %}">
-    Maintenance
-</a>
+                        <span class="part-name">
+                            <strong>{{ part.name }}</strong>
+                            <small>Spare part</small>
+                        </span>
 
-</body>
-</html>
+                    </div>
+
+                </td>
+
+                <!-- Part number -->
+                <td>
+                    <span class="part-num">{{ part.part_number }}</span>
+                </td>
+
+                <!-- Price -->
+                <td>
+                    <span class="price-chip">{{ part.price }}</span>
+                </td>
+
+                <!-- Quantity — changes colour when low -->
+                <td>
+                    {% if part.quantity <= part.minimum_stock %}
+                        <span class="qty-chip qty-chip--low">{{ part.quantity }}</span>
+                    {% else %}
+                        <span class="qty-chip">{{ part.quantity }}</span>
+                    {% endif %}
+                </td>
+
+                <!-- Minimum stock -->
+                <td>
+                    <span class="min-stock">{{ part.minimum_stock }}</span>
+                </td>
+
+                <!-- Stock status -->
+                <td>
+
+                    {% if part.quantity <= part.minimum_stock %}
+
+                        <span class="stock-badge stock-badge--low">
+                            Low Stock
+                        </span>
+
+                    {% else %}
+
+                        <span class="stock-badge stock-badge--in">
+                            In Stock
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <!-- Actions -->
+                <td>
+
+                    <div class="actions">
+
+                        <a href="{% url 'spare_part_detail' part.id %}"
+                           class="btn btn-sm btn-outline">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+
+                            View
+
+                        </a>
+
+                        <a href="{% url 'spare_part_update' part.id %}"
+                           class="btn btn-sm btn-primary">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-cell">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                        <path d="M12 22.08V12"/>
+                    </svg>
+
+                    <strong>No spare parts found</strong>
+                    Start by adding your first spare part.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

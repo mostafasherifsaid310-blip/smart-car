@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}
+Technicians | Smart Car
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Page header with action button
+       ============================================================ */
+
+    .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
+
+    /* Counter pill next to title */
+    .pill {
+        display: inline-block;
+
+        margin-left: 10px;
+
+        padding: 3px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        vertical-align: middle;
+
+        color: #6b7280;
+        background: #f1f5f9;
+        border: 1px solid #e6eaf0;
+    }
+
+
+    /* ============================================================
+       Table enhancements
+       ============================================================ */
+
+    /* Technician name cell with avatar */
+    .tech-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .tech-avatar {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 12px;
+
+        font-size: 15px;
+        font-weight: 700;
+        color: #065f46;
+
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+
+        border: 1px solid #a7f3d0;
+
+        box-shadow: 0 6px 14px -8px rgba(16, 185, 129, .65);
+    }
+
+    .tech-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+
+    .tech-name strong {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .tech-name small {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Specialization chip */
+    .spec-chip {
+        display: inline-block;
+
+        padding: 4px 11px;
+
+        border-radius: 8px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #1e3a8a;
+        background: #eef2ff;
+        border: 1px solid #dbe3ff;
+    }
+
+    /* Experience cell with icon */
+    .exp-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #334155;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .exp-cell svg {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
+        color: #94a3b8;
+    }
+
+    /* Contact cell (phone) */
+    .contact-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #334155;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .contact-line svg {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        color: #94a3b8;
+    }
+
+    /* Email */
+    .email-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #334155;
+    }
+
+    .email-cell svg {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        color: #94a3b8;
+    }
+
+    .email-cell a {
+        color: inherit;
+        text-decoration: none;
+
+        border-bottom: 1px dashed transparent;
+        transition: color .18s ease, border-color .18s ease;
+    }
+
+    .email-cell a:hover {
+        color: #4f46e5;
+        border-bottom-color: #c7d2fe;
+    }
+
+    /* Numeric */
+    .num { font-variant-numeric: tabular-nums; }
+
+
+    /* ============================================================
+       Availability badge
+       ============================================================ */
+
+    .avail-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        padding: 5px 13px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .avail-badge::before {
+        content: "";
+
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+    }
+
+    /* Available — green with pulse dot */
+    .avail-badge--on {
+        color: #047857;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    .avail-badge--on::before {
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, .22);
+    }
+
+    /* Unavailable — muted grey */
+    .avail-badge--off {
+        color: #64748b;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    .avail-badge--off::before {
+        background: #94a3b8;
+    }
+
+
+    /* ============================================================
+       Small action buttons
+       ============================================================ */
+
+    .btn-sm {
+        padding: 6px 12px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        border-radius: 8px;
+    }
+
+    .btn-sm svg { width: 14px; height: 14px; }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* "View" — outline style */
+    .btn-outline {
+        color: #334155;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-outline:hover {
+        color: #4f46e5;
+        border-color: #c7d2fe;
+        background: #eef0ff;
+    }
+
+
+    /* ============================================================
+       Empty state
+       ============================================================ */
+
+    .empty-cell {
+        padding: 50px 20px !important;
+
+        text-align: center;
+
+        color: #6b7280 !important;
+        font-size: 14.5px;
+    }
+
+    .empty-cell svg {
+        display: block;
+        margin: 0 auto 12px;
+
+        width: 40px;
+        height: 40px;
+
+        opacity: .4;
+    }
+
+    .empty-cell strong {
+        display: block;
+
+        margin-bottom: 4px;
+
+        font-size: 15px;
+        color: #334155;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <div>
+
+        <h1>
+            Technicians
+
+            {% if technicians %}
+                <span class="pill">{{ technicians|length }}</span>
+            {% endif %}
+        </h1>
+
+        <p>
+            Manage service technicians and their availability.
+        </p>
+
+    </div>
+
+
+    <a href="{% url 'technician_create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        Add Technician
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     Technicians table
+     ============================================================ -->
+
+<div class="table-container">
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Experience</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Availability</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for technician in technicians %}
+
+            <tr>
+
+                <!-- Name with avatar -->
+                <td>
+
+                    <div class="tech-cell">
+
+                        <span class="tech-avatar">
+                            {{ technician.name|first|upper }}
+                        </span>
+
+                        <span class="tech-name">
+                            <strong>{{ technician.name }}</strong>
+                            <small>Technician</small>
+                        </span>
+
+                    </div>
+
+                </td>
+
+                <!-- Specialization -->
+                <td>
+                    {% if technician.specialization %}
+                        <span class="spec-chip">
+                            {{ technician.specialization }}
+                        </span>
+                    {% else %}
+                        {{ technician.specialization|default:"-" }}
+                    {% endif %}
+                </td>
+
+                <!-- Experience -->
+                <td class="num">
+                    <span class="exp-cell">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 7v5l3.2 1.9"/>
+                        </svg>
+                        {{ technician.experience_years }} years
+                    </span>
+                </td>
+
+                <!-- Phone -->
+                <td class="num">
+
+                    <span class="contact-line">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        {{ technician.phone }}
+                    </span>
+
+                </td>
+
+                <!-- Email -->
+                <td>
+
+                    <span class="email-cell">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="2.5"/>
+                            <path d="m3 7 9 6 9-6"/>
+                        </svg>
+                        <a href="mailto:{{ technician.email }}">{{ technician.email }}</a>
+                    </span>
+
+                </td>
+
+                <!-- Availability -->
+                <td>
+
+                    {% if technician.is_available %}
+
+                        <span class="avail-badge avail-badge--on">
+                            Available
+                        </span>
+
+                    {% else %}
+
+                        <span class="avail-badge avail-badge--off">
+                            Unavailable
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <!-- Actions -->
+                <td>
+
+                    <div class="actions">
+
+                        <a href="{% url 'technician_detail' technician.id %}"
+                           class="btn btn-sm btn-outline">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+
+                            View
+
+                        </a>
+
+                        <a href="{% url 'technician_update' technician.id %}"
+                           class="btn btn-sm btn-primary">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-cell">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+
+                    <strong>No technicians found</strong>
+                    Start by adding your first technician.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

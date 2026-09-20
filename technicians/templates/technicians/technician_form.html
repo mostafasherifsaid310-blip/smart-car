@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ title }} | Smart Car
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Form card
+       ============================================================ */
+
+    .form-card {
+        max-width: 820px;
+
+        padding: 30px 32px 26px;
+
+        background: #ffffff;
+
+        border: 1px solid #e6eaf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 14px 32px -16px rgba(16, 24, 40, .22);
+
+        animation: rise .35s ease backwards;
+    }
+
+    /* Header */
+    .form-card-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .form-icon {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 13px;
+
+        color: #047857;
+        background: linear-gradient(135deg, #e6f8f1, #e6f5ff);
+        border: 1px solid #e6eaf0;
+    }
+
+    .form-icon svg { width: 23px; height: 23px; }
+
+    .form-card-head h3 {
+        margin: 0;
+
+        font-size: 16.5px;
+        font-weight: 700;
+        letter-spacing: .1px;
+        color: #0f172a;
+    }
+
+    .form-card-head p {
+        margin: 3px 0 0;
+
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* ============================================================
+       Django's form.as_p → styled grid
+       ============================================================ */
+
+    .form-card form p {
+        display: flex;
+        flex-direction: column;
+
+        margin: 0 0 18px;
+    }
+
+    /* Two-column grid on wider screens */
+    @media (min-width: 660px) {
+        .form-card form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 22px;
+            row-gap: 4px;
+        }
+
+        /* Full-width fields */
+        .form-card form p:has(textarea),
+        .form-card form p:has(input[type="hidden"]),
+        .form-card form p.full-width,
+        .form-card form .actions {
+            grid-column: 1 / -1;
+        }
+    }
+
+
+    /* Label */
+    .form-card form label {
+        display: block;
+
+        margin-bottom: 7px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+
+        color: #475569;
+    }
+
+    /* Inputs / selects / textareas */
+    .form-card form input[type="text"],
+    .form-card form input[type="number"],
+    .form-card form input[type="email"],
+    .form-card form input[type="tel"],
+    .form-card form input[type="date"],
+    .form-card form input[type="time"],
+    .form-card form input[type="datetime-local"],
+    .form-card form input[type="url"],
+    .form-card form input[type="password"],
+    .form-card form select,
+    .form-card form textarea {
+        width: 100%;
+
+        padding: 11px 14px;
+
+        font-family: inherit;
+        font-size: 14.5px;
+        color: #0f172a;
+
+        background: #f8fafc;
+
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+
+        transition:
+            border-color .18s ease,
+            box-shadow .18s ease,
+            background .18s ease;
+    }
+
+    .form-card form textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    /* Placeholder */
+    .form-card form input::placeholder,
+    .form-card form textarea::placeholder {
+        color: #94a3b8;
+    }
+
+    /* Focus — green ring to match the technicians theme */
+    .form-card form input:focus,
+    .form-card form select:focus,
+    .form-card form textarea:focus {
+        outline: none;
+
+        background: #ffffff;
+
+        border-color: #6ee7b7;
+
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, .14);
+    }
+
+    /* Checkbox — for "is_available" toggle */
+    .form-card form input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #10b981;
+        cursor: pointer;
+    }
+
+    /* Help text */
+    .form-card form .helptext {
+        display: block;
+
+        margin-top: 6px;
+
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Error list */
+    .form-card form .errorlist {
+        margin: 6px 0 0;
+        padding: 0;
+
+        list-style: none;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #b91c1c;
+    }
+
+    .form-card form .errorlist li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-card form .errorlist li::before {
+        content: "⚠";
+        font-size: 13px;
+    }
+
+    /* Highlight invalid inputs */
+    .form-card form input:invalid:not(:placeholder-shown),
+    .form-card form .errorlist ~ input,
+    .form-card form .errorlist ~ select,
+    .form-card form .errorlist ~ textarea {
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+
+
+    /* ============================================================
+       Actions row
+       ============================================================ */
+
+    .form-card form .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        margin-top: 6px;
+        padding-top: 22px;
+
+        border-top: 1px solid #eef2f7;
+    }
+
+    .form-card form .actions .btn {
+        padding: 11px 22px;
+        font-size: 14px;
+    }
+
+    .form-card form .actions .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Save button — green gradient to match the technicians theme */
+    .form-card form .actions .btn-save {
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #10b981, #059669);
+
+        box-shadow: 0 12px 24px -12px rgba(16, 185, 129, .95);
+    }
+
+    .form-card form .actions .btn-save:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    /* Cancel — softer outline */
+    .form-card form .actions .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    .form-card form .actions .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+
+    /* ============================================================
+       Motion
+       ============================================================ */
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .form-card { animation: none; }
+    }
+
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+
+    @media (max-width: 560px) {
+        .form-card { padding: 22px 20px; }
+        .form-card-head { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Page header
+     ============================================================ -->
+
+<div class="page-header">
+
+    <h1>{{ title }}</h1>
+
+    <p>
+        Enter technician information.
+    </p>
+
+</div>
+
+
+<!-- ============================================================
+     Form card
+     ============================================================ -->
+
+<div class="form-card">
+
+    <div class="form-card-head">
+
+        <span class="form-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        </span>
+
+        <div>
+            <h3>Technician Information</h3>
+            <p>Fill in the details and save your changes.</p>
+        </div>
+
+    </div>
+
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <div class="actions">
+
+            <button type="submit" class="btn btn-save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12l5 5L20 7"/>
+                </svg>
+                Save
+            </button>
+
+            <a href="{% url 'technician_list' %}" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

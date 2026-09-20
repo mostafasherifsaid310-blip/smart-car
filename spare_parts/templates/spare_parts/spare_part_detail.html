@@ -1,68 +1,714 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Spare Part Details</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Spare Part Details</h1>
+{% block title %}
+Spare Part Details | Smart Car
+{% endblock %}
 
-<p>
-    <strong>Name:</strong>
-    {{ part.name }}
-</p>
 
-<p>
-    <strong>Part Number:</strong>
-    {{ part.part_number }}
-</p>
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Hero header
+       ============================================================ */
 
-<p>
-    <strong>Description:</strong>
-    {{ part.description|default:"No description" }}
-</p>
+    .part-hero {
+        position: relative;
+        overflow: hidden;
 
-<p>
-    <strong>Price:</strong>
-    {{ part.price }}
-</p>
+        max-width: 980px;
 
-<p>
-    <strong>Quantity:</strong>
-    {{ part.quantity }}
-</p>
+        padding: 28px 32px;
 
-<p>
-    <strong>Minimum Stock:</strong>
-    {{ part.minimum_stock }}
-</p>
+        color: #fff;
 
-{% if part.quantity <= part.minimum_stock %}
+        border-radius: 18px;
 
-<p>
-    <strong>Warning:</strong>
-    Low Stock!
-</p>
+        background:
+            linear-gradient(120deg, #2e1065 0%, #5b21b6 55%, #7c3aed 100%);
 
-{% endif %}
+        box-shadow: 0 18px 40px -24px rgba(46, 16, 101, .9);
 
-<hr>
+        animation: rise .35s ease backwards;
+    }
 
-<a href="{% url 'spare_part_update' part.id %}">
-    Edit
-</a>
+    .part-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
 
-|
+        background:
+            radial-gradient(420px 200px at 90% -20%,
+                            rgba(167, 139, 250, .45), transparent 70%),
+            radial-gradient(360px 200px at 5% 130%,
+                            rgba(196, 181, 253, .30), transparent 70%);
 
-<a href="{% url 'spare_part_delete' part.id %}">
-    Delete
-</a>
+        pointer-events: none;
+    }
 
-|
+    .part-hero-inner {
+        position: relative;
+        z-index: 1;
 
-<a href="{% url 'spare_part_list' %}">
-    Back
-</a>
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
 
-</body>
-</html>
+    /* Box icon */
+    .part-hero-avatar {
+        width: 68px;
+        height: 68px;
+        flex: 0 0 68px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 18px;
+
+        color: #ede9fe;
+
+        background:
+            linear-gradient(135deg,
+                            rgba(255, 255, 255, .28),
+                            rgba(255, 255, 255, .08));
+
+        border: 1px solid rgba(255, 255, 255, .28);
+
+        backdrop-filter: blur(6px);
+    }
+
+    .part-hero-avatar svg { width: 32px; height: 32px; }
+
+    .part-hero-info { min-width: 0; flex: 1; }
+
+    .part-hero-info h1 {
+        margin: 0;
+
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -.02em;
+    }
+
+    .part-hero-info p {
+        margin: 6px 0 0;
+
+        font-size: 13.5px;
+        color: rgba(255, 255, 255, .75);
+    }
+
+    .part-hero-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        margin-top: 12px;
+    }
+
+    .hero-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 5px 12px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #ede9fe;
+
+        background: rgba(255, 255, 255, .10);
+        border: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    .hero-chip svg { width: 14px; height: 14px; }
+
+    /* Part number chip (monospace) */
+    .hero-chip--mono {
+        font-family: "SFMono-Regular", Consolas, monospace;
+        letter-spacing: .06em;
+    }
+
+    /* Stock status pill */
+    .hero-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 6px 14px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+    }
+
+    .hero-status::before {
+        content: "";
+
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+    }
+
+    .hero-status--in {
+        color: #bbf7d0;
+        background: rgba(34, 197, 94, .20);
+        border: 1px solid rgba(34, 197, 94, .50);
+    }
+
+    .hero-status--in::before {
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, .32);
+    }
+
+    .hero-status--low {
+        color: #fecaca;
+        background: rgba(239, 68, 68, .20);
+        border: 1px solid rgba(239, 68, 68, .55);
+    }
+
+    .hero-status--low::before {
+        background: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, .32);
+    }
+
+
+    /* ============================================================
+       Detail card
+       ============================================================ */
+
+    .detail-card {
+        max-width: 980px;
+
+        margin-top: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #e6eaf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 14px 32px -16px rgba(16, 24, 40, .22);
+
+        overflow: hidden;
+    }
+
+    .section-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 18px 26px;
+
+        background: linear-gradient(#ffffff, #fbfcfe);
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .section-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 11px;
+
+        color: #7c3aed;
+        background: #f3e8ff;
+    }
+
+    .section-icon svg { width: 19px; height: 19px; }
+
+    .section-head h2 {
+        margin: 0;
+
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: .1px;
+    }
+
+    .section-body { padding: 22px 26px 26px; }
+
+
+    /* ============================================================
+       Detail grid
+       ============================================================ */
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        padding: 14px 16px;
+
+        background: #f8fafc;
+
+        border: 1px solid #eef2f7;
+        border-radius: 12px;
+
+        transition: background .18s ease, border-color .18s ease;
+    }
+
+    .detail-item:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+
+    /* Full-width items */
+    .detail-item--wide { grid-column: 1 / -1; }
+
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+
+        color: #6b7280;
+    }
+
+    .detail-label svg {
+        width: 14px;
+        height: 14px;
+        color: #94a3b8;
+    }
+
+    .detail-value {
+        font-size: 15.5px;
+        font-weight: 600;
+        color: #0f172a;
+
+        font-variant-numeric: tabular-nums;
+
+        word-break: break-word;
+    }
+
+    .detail-value.muted {
+        font-weight: 500;
+        color: #64748b;
+        font-style: italic;
+    }
+
+    /* Part number chip */
+    .num-chip {
+        display: inline-block;
+
+        padding: 4px 12px;
+
+        border-radius: 9px;
+
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .04em;
+
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Price chip */
+    .price-chip {
+        display: inline-block;
+
+        padding: 4px 12px;
+
+        border-radius: 9px;
+
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #065f46;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    /* Quantity chips */
+    .qty-chip {
+        display: inline-block;
+
+        min-width: 44px;
+
+        padding: 4px 12px;
+
+        text-align: center;
+
+        border-radius: 9px;
+
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #1e3a8a;
+        background: #eef2ff;
+        border: 1px solid #dbe3ff;
+    }
+
+    .qty-chip--low {
+        color: #b91c1c;
+        background: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    /* Minimum stock value */
+    .min-stock {
+        display: inline-block;
+
+        padding: 4px 12px;
+
+        border-radius: 9px;
+
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #64748b;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+
+    /* ============================================================
+       Action bar
+       ============================================================ */
+
+    .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+
+        max-width: 980px;
+
+        margin-top: 24px;
+    }
+
+    .action-bar .btn svg { width: 16px; height: 16px; }
+
+    /* Softer Back button */
+    .action-bar .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    .action-bar .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    /* Push Back to the right */
+    .action-bar .spacer { margin-left: auto; }
+
+
+    /* ============================================================
+       Motion
+       ============================================================ */
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .part-hero { animation: none; }
+    }
+
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+
+    @media (max-width: 560px) {
+
+        .part-hero { padding: 22px; }
+
+        .part-hero-avatar {
+            width: 58px; height: 58px; flex: 0 0 58px;
+        }
+
+        .part-hero-avatar svg { width: 26px; height: 26px; }
+
+        .part-hero-info h1 { font-size: 19px; }
+
+        .section-body { padding: 18px 20px 22px; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Hero header
+     ============================================================ -->
+
+<div class="part-hero">
+
+    <div class="part-hero-inner">
+
+        <span class="part-hero-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                <path d="M12 22.08V12"/>
+            </svg>
+        </span>
+
+        <div class="part-hero-info">
+
+            <h1>{{ spare_part.name }}</h1>
+
+            <p>Spare part and inventory information</p>
+
+            <div class="part-hero-chips">
+
+                <span class="hero-chip hero-chip--mono">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5h16"/>
+                        <path d="M4 10h16"/>
+                        <path d="M4 15h10"/>
+                    </svg>
+                    {{ spare_part.part_number }}
+                </span>
+
+                <span class="hero-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3h12"/>
+                        <path d="M6 8h12"/>
+                        <path d="M6 13h3"/>
+                        <path d="M9 13c6.667 0 6.667-10 0-10"/>
+                    </svg>
+                    {{ spare_part.price }}
+                </span>
+
+                {% if spare_part.quantity <= spare_part.minimum_stock %}
+                    <span class="hero-status hero-status--low">
+                        Low Stock
+                    </span>
+                {% else %}
+                    <span class="hero-status hero-status--in">
+                        In Stock
+                    </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Spare part details
+     ============================================================ -->
+
+<div class="detail-card">
+
+    <div class="section-head">
+
+        <span class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                <path d="M12 22.08V12"/>
+            </svg>
+        </span>
+
+        <h2>Part Details</h2>
+
+    </div>
+
+
+    <div class="section-body">
+
+        <div class="detail-grid">
+
+            <!-- Name -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                    Name
+                </span>
+                <span class="detail-value">{{ spare_part.name }}</span>
+            </div>
+
+
+            <!-- Part Number -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="6" width="18" height="12" rx="2.5"/>
+                        <path d="M7 10v4"/>
+                        <path d="M11 10v4"/>
+                        <path d="M15 10v4"/>
+                    </svg>
+                    Part Number
+                </span>
+                <span class="detail-value">
+                    <span class="num-chip">{{ spare_part.part_number }}</span>
+                </span>
+            </div>
+
+
+            <!-- Price -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3h12"/>
+                        <path d="M6 8h12"/>
+                        <path d="M6 13h3"/>
+                        <path d="M9 13c6.667 0 6.667-10 0-10"/>
+                        <path d="m6 13 8 8"/>
+                        <path d="m9 13-3 3"/>
+                    </svg>
+                    Price
+                </span>
+                <span class="detail-value">
+                    <span class="price-chip">{{ spare_part.price }}</span>
+                </span>
+            </div>
+
+
+            <!-- Quantity (colour-coded) -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 7h-9"/>
+                        <path d="M14 17H5"/>
+                        <circle cx="17" cy="17" r="3"/>
+                        <circle cx="7" cy="7" r="3"/>
+                    </svg>
+                    Quantity
+                </span>
+
+                {% if spare_part.quantity <= spare_part.minimum_stock %}
+                    <span class="detail-value">
+                        <span class="qty-chip qty-chip--low">{{ spare_part.quantity }}</span>
+                    </span>
+                {% else %}
+                    <span class="detail-value">
+                        <span class="qty-chip">{{ spare_part.quantity }}</span>
+                    </span>
+                {% endif %}
+            </div>
+
+
+            <!-- Minimum Stock -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14"/>
+                        <path d="m5 12 7 7 7-7"/>
+                    </svg>
+                    Minimum Stock
+                </span>
+                <span class="detail-value">
+                    <span class="min-stock">{{ spare_part.minimum_stock }}</span>
+                </span>
+            </div>
+
+
+            <!-- Description (full width) -->
+            <div class="detail-item detail-item--wide">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5h16"/>
+                        <path d="M4 10h16"/>
+                        <path d="M4 15h10"/>
+                    </svg>
+                    Description
+                </span>
+
+                {% if spare_part.description %}
+                    <span class="detail-value">{{ spare_part.description }}</span>
+                {% else %}
+                    <span class="detail-value muted">
+                        {{ spare_part.description|default:"-" }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Action bar
+     ============================================================ -->
+
+<div class="action-bar">
+
+    <a href="{% url 'spare_part_update' spare_part.id %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Edit
+    </a>
+
+    <a href="{% url 'spare_part_delete' spare_part.id %}" class="btn btn-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+        </svg>
+        Delete
+    </a>
+
+    <span class="spacer"></span>
+
+    <a href="{% url 'spare_part_list' %}" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="m12 19-7-7 7-7"/>
+        </svg>
+        Back
+    </a>
+
+</div>
+
+{% endblock %}

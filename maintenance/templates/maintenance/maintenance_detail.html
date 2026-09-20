@@ -1,142 +1,1100 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Maintenance Details</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Maintenance Details</h1>
+{% block title %}
+Maintenance Details | Smart Car
+{% endblock %}
 
-<p>
-    <strong>Car:</strong>
-    {{ record.car.brand }} {{ record.car.model }}
-</p>
 
-<p>
-    <strong>License Plate:</strong>
-    {{ record.car.license_plate }}
-</p>
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Hero header
+       ============================================================ */
 
-<p>
-    <strong>Technician:</strong>
-    {{ record.technician.name }}
-</p>
+    .maint-hero {
+        position: relative;
+        overflow: hidden;
 
-<p>
-    <strong>Specialization:</strong>
-    {{ record.technician.specialization }}
-</p>
+        max-width: 980px;
 
-<p>
-    <strong>Service Type:</strong>
-    {{ record.service_type }}
-</p>
+        padding: 28px 32px;
 
-<p>
-    <strong>Description:</strong>
-    {{ record.description|default:"No description" }}
-</p>
+        color: #fff;
 
-<p>
-    <strong>Service Date:</strong>
-    {{ record.service_date }}
-</p>
+        border-radius: 18px;
 
-<p>
-    <strong>Mileage:</strong>
-    {{ record.mileage }}
-</p>
+        background:
+            linear-gradient(120deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%);
 
-<p>
-    <strong>Cost:</strong>
-    {{ record.cost }}
-</p>
+        box-shadow: 0 18px 40px -24px rgba(15, 23, 42, .9);
 
-<p>
-    <strong>Status:</strong>
-    {{ record.get_status_display }}
-</p>
+        animation: rise .35s ease backwards;
+    }
 
-<h2>Spare Parts Used</h2>
+    .maint-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
 
-<a href="{% url 'maintenance_add_part' record.id %}">
-    Add Spare Part
-</a>
+        background:
+            radial-gradient(420px 200px at 90% -20%,
+                            rgba(56, 189, 248, .38), transparent 70%),
+            radial-gradient(360px 200px at 5% 130%,
+                            rgba(129, 140, 248, .32), transparent 70%);
 
-{% if record.parts_used.all %}
+        pointer-events: none;
+    }
 
-<table border="1" cellpadding="10">
+    .maint-hero-inner {
+        position: relative;
+        z-index: 1;
 
-    <tr>
-        <th>Part</th>
-        <th>Part Number</th>
-        <th>Quantity Used</th>
-        <th>Action</th>
-    </tr>
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
 
-    {% for item in record.parts_used.all %}
+    .maint-hero-avatar {
+        width: 68px;
+        height: 68px;
+        flex: 0 0 68px;
 
-    <tr>
+        display: grid;
+        place-items: center;
 
-        <td>
-            {{ item.spare_part.name }}
-        </td>
+        border-radius: 18px;
 
-        <td>
-            {{ item.spare_part.part_number }}
-        </td>
+        color: #e0f2fe;
 
-        <td>
-            {{ item.quantity_used }}
-        </td>
+        background:
+            linear-gradient(135deg,
+                            rgba(255, 255, 255, .28),
+                            rgba(255, 255, 255, .08));
 
-        <td>
+        border: 1px solid rgba(255, 255, 255, .28);
 
-            <form
-                method="post"
-                action="{% url 'maintenance_remove_part' item.id %}"
-            >
+        backdrop-filter: blur(6px);
+    }
 
-                {% csrf_token %}
+    .maint-hero-avatar svg { width: 32px; height: 32px; }
 
-                <button type="submit">
-                    Remove
-                </button>
+    .maint-hero-info { min-width: 0; flex: 1; }
 
-            </form>
+    .maint-hero-info h1 {
+        margin: 0;
 
-        </td>
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
 
-    </tr>
+    .maint-hero-info p {
+        margin: 6px 0 0;
 
-    {% endfor %}
+        font-size: 13.5px;
+        color: rgba(255, 255, 255, .72);
+    }
 
-</table>
+    .maint-hero-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
 
-{% else %}
+        margin-top: 12px;
+    }
 
-<p>
-    No spare parts used.
-</p>
+    .hero-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
 
-{% endif %}
-<hr>
+        padding: 5px 12px;
 
-<a href="{% url 'maintenance_update' record.id %}">
-    Edit
-</a>
+        border-radius: 999px;
 
-|
+        font-size: 12.5px;
+        font-weight: 600;
 
-<a href="{% url 'maintenance_delete' record.id %}">
-    Delete
-</a>
+        color: #e0e7ff;
 
-|
+        background: rgba(255, 255, 255, .10);
+        border: 1px solid rgba(255, 255, 255, .22);
+    }
 
-<a href="{% url 'maintenance_list' %}">
-    Back
-</a>
+    .hero-chip svg { width: 14px; height: 14px; }
 
-</body>
-</html>
+    /* Plate variant (monospace) */
+    .hero-chip--plate {
+        font-family: "SFMono-Regular", Consolas, monospace;
+        letter-spacing: .08em;
+    }
+
+    /* Status pill */
+    .hero-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 6px 14px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+
+        color: #bbf7d0;
+        background: rgba(34, 197, 94, .18);
+        border: 1px solid rgba(34, 197, 94, .45);
+    }
+
+    .hero-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, .28);
+    }
+
+
+    /* ============================================================
+       Sections
+       ============================================================ */
+
+    .detail-card {
+        max-width: 980px;
+
+        margin-top: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #e6eaf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 14px 32px -16px rgba(16, 24, 40, .22);
+
+        overflow: hidden;
+    }
+
+    .section-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 18px 26px;
+
+        background: linear-gradient(#ffffff, #fbfcfe);
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .section-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 11px;
+    }
+
+    .section-icon svg { width: 19px; height: 19px; }
+
+    .section-icon--blue   { color: #0369a1; background: #e6f5ff; }
+    .section-icon--green  { color: #047857; background: #e6f8f1; }
+    .section-icon--indigo { color: #4f46e5; background: #eef0ff; }
+
+    .section-head h2 {
+        margin: 0;
+
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: .1px;
+    }
+
+    .section-body { padding: 22px 26px 26px; }
+
+
+    /* ============================================================
+       Detail grid
+       ============================================================ */
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        padding: 14px 16px;
+
+        background: #f8fafc;
+
+        border: 1px solid #eef2f7;
+        border-radius: 12px;
+
+        transition: background .18s ease, border-color .18s ease;
+    }
+
+    .detail-item:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+
+    /* Full-width items */
+    .detail-item--wide { grid-column: 1 / -1; }
+
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+
+        color: #6b7280;
+    }
+
+    .detail-label svg {
+        width: 14px;
+        height: 14px;
+        color: #94a3b8;
+    }
+
+    .detail-value {
+        font-size: 15.5px;
+        font-weight: 600;
+        color: #0f172a;
+
+        font-variant-numeric: tabular-nums;
+
+        word-break: break-word;
+    }
+
+    .detail-value.muted {
+        font-weight: 500;
+        color: #64748b;
+        font-style: italic;
+    }
+
+    /* Cost chip */
+    .cost-chip {
+        display: inline-block;
+
+        padding: 4px 12px;
+
+        border-radius: 9px;
+
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #065f46;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+    }
+
+    /* Status badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 4px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+
+        color: #475569;
+        background: #eef2f7;
+        border: 1px solid #e2e8f0;
+    }
+
+    .badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .badge--green { color: #047857; background: #e7f8f0; border-color: #c6ecdb; }
+    .badge--amber { color: #b45309; background: #fff4e0; border-color: #fbe0b4; }
+    .badge--blue  { color: #0369a1; background: #e6f5ff; border-color: #bfe6fb; }
+    .badge--red   { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+
+
+    /* ============================================================
+       Spare parts table
+       ============================================================ */
+
+    .parts-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+
+        padding: 18px 26px;
+
+        background: linear-gradient(#ffffff, #fbfcfe);
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .parts-head-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .parts-head-title h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .parts-count {
+        padding: 3px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #6b7280;
+        background: #f1f5f9;
+        border: 1px solid #e6eaf0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14.5px;
+    }
+
+    thead th {
+        padding: 12px 20px;
+
+        text-align: left;
+        white-space: nowrap;
+
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+
+        color: #6b7280;
+        background: #f8fafc;
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    tbody td {
+        padding: 14px 20px;
+
+        border-bottom: 1px solid #eef2f7;
+
+        color: #334155;
+    }
+
+    tbody tr { transition: background .18s ease; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* Part identity cell */
+    .part-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .part-avatar {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 10px;
+
+        color: #7c3aed;
+        background: linear-gradient(135deg, #f3e8ff, #eef0ff);
+        border: 1px solid #e6eaf0;
+    }
+
+    .part-avatar svg { width: 18px; height: 18px; }
+
+    .part-name {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    /* Part number chip */
+    .part-num {
+        display: inline-block;
+
+        padding: 3px 10px;
+
+        border-radius: 8px;
+
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: .04em;
+
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Quantity chip */
+    .qty-chip {
+        display: inline-block;
+
+        min-width: 40px;
+
+        padding: 4px 11px;
+
+        text-align: center;
+
+        border-radius: 9px;
+
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+
+        color: #1e3a8a;
+        background: #eef2ff;
+        border: 1px solid #dbe3ff;
+    }
+
+    /* Remove button */
+    .btn-remove {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        padding: 6px 12px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        border-radius: 8px;
+
+        cursor: pointer;
+
+        color: #b91c1c;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+
+        transition: background .18s ease, color .18s ease,
+                    border-color .18s ease, transform .18s ease;
+    }
+
+    .btn-remove svg { width: 14px; height: 14px; }
+
+    .btn-remove:hover {
+        color: #fff;
+        background: #dc2626;
+        border-color: #dc2626;
+        transform: translateY(-1px);
+    }
+
+
+    /* Empty state for parts */
+    .parts-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+
+        padding: 42px 24px;
+
+        text-align: center;
+
+        color: #6b7280;
+        font-size: 14.5px;
+    }
+
+    .parts-empty svg {
+        width: 36px;
+        height: 36px;
+        opacity: .4;
+    }
+
+    .parts-empty strong {
+        display: block;
+        font-size: 15px;
+        color: #334155;
+    }
+
+
+    /* ============================================================
+       Action buttons row
+       ============================================================ */
+
+    .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+
+        max-width: 980px;
+
+        margin-top: 24px;
+    }
+
+    .action-bar .btn svg { width: 16px; height: 16px; }
+
+    /* Softer "Back" button */
+    .action-bar .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    .action-bar .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    /* Push Back to the right */
+    .action-bar .spacer { margin-left: auto; }
+
+
+    /* ============================================================
+       Motion
+       ============================================================ */
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .maint-hero { animation: none; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Hero header with car + status
+     ============================================================ -->
+
+<div class="maint-hero">
+
+    <div class="maint-hero-inner">
+
+        <span class="maint-hero-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        </span>
+
+        <div class="maint-hero-info">
+
+            <h1>Maintenance Details</h1>
+
+            <p>
+                {{ record.car.brand }} {{ record.car.model }}
+                &middot; Service record overview
+            </p>
+
+            <div class="maint-hero-chips">
+
+                <span class="hero-chip hero-chip--plate">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="6" width="18" height="12" rx="2.5"/>
+                        <path d="M7 10v4"/>
+                        <path d="M11 10v4"/>
+                        <path d="M15 10v4"/>
+                    </svg>
+                    {{ record.car.license_plate }}
+                </span>
+
+                <span class="hero-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    {{ record.technician.name }}
+                </span>
+
+                <span class="hero-status">
+                    {{ record.get_status_display }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Service details
+     ============================================================ -->
+
+<div class="detail-card">
+
+    <div class="section-head">
+
+        <span class="section-icon section-icon--blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3.2 1.9"/>
+            </svg>
+        </span>
+
+        <h2>Service Details</h2>
+
+    </div>
+
+
+    <div class="section-body">
+
+        <div class="detail-grid">
+
+            <!-- Car brand + model -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 17h14"/>
+                        <path d="M4 17v-4.2a2 2 0 0 1 .2-.9l2-4.4A2 2 0 0 1 8 6.3h8a2 2 0 0 1 1.8 1.2l2 4.4a2 2 0 0 1 .2.9V17"/>
+                    </svg>
+                    Car
+                </span>
+                <span class="detail-value">
+                    {{ record.car.brand }} {{ record.car.model }}
+                </span>
+            </div>
+
+
+            <!-- License plate -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="6" width="18" height="12" rx="2.5"/>
+                        <path d="M7 10v4"/>
+                        <path d="M11 10v4"/>
+                        <path d="M15 10v4"/>
+                    </svg>
+                    License Plate
+                </span>
+                <span class="detail-value">{{ record.car.license_plate }}</span>
+            </div>
+
+
+            <!-- Technician -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    Technician
+                </span>
+                <span class="detail-value">{{ record.technician.name }}</span>
+            </div>
+
+
+            <!-- Specialization -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v4"/>
+                        <path d="m4.93 4.93 2.83 2.83"/>
+                        <path d="M2 12h4"/>
+                        <path d="m4.93 19.07 2.83-2.83"/>
+                        <path d="M12 18v4"/>
+                        <path d="m19.07 19.07-2.83-2.83"/>
+                        <path d="M18 12h4"/>
+                        <path d="m19.07 4.93-2.83 2.83"/>
+                    </svg>
+                    Specialization
+                </span>
+                <span class="detail-value">{{ record.technician.specialization }}</span>
+            </div>
+
+
+            <!-- Service type -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    Service Type
+                </span>
+                <span class="detail-value">{{ record.service_type }}</span>
+            </div>
+
+
+            <!-- Service date -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                        <path d="M8 2.5v4"/>
+                        <path d="M16 2.5v4"/>
+                        <path d="M3 10h18"/>
+                    </svg>
+                    Service Date
+                </span>
+                <span class="detail-value">{{ record.service_date }}</span>
+            </div>
+
+
+            <!-- Mileage -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        <path d="M12 3v3"/>
+                        <path d="M12 18v3"/>
+                        <path d="M3 12h3"/>
+                        <path d="M18 12h3"/>
+                    </svg>
+                    Mileage
+                </span>
+                <span class="detail-value">{{ record.mileage }}</span>
+            </div>
+
+
+            <!-- Cost -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3h12"/>
+                        <path d="M6 8h12"/>
+                        <path d="M6 13h3"/>
+                        <path d="M9 13c6.667 0 6.667-10 0-10"/>
+                        <path d="m6 13 8 8"/>
+                        <path d="m9 13-3 3"/>
+                    </svg>
+                    Cost
+                </span>
+                <span class="detail-value">
+                    <span class="cost-chip">{{ record.cost }}</span>
+                </span>
+            </div>
+
+
+            <!-- Status -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    Status
+                </span>
+                <span class="detail-value">
+                    <span class="badge">{{ record.get_status_display }}</span>
+                </span>
+            </div>
+
+
+            <!-- Description (full width) -->
+            <div class="detail-item detail-item--wide">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5h16"/>
+                        <path d="M4 10h16"/>
+                        <path d="M4 15h10"/>
+                    </svg>
+                    Description
+                </span>
+
+                {% if record.description %}
+                    <span class="detail-value">{{ record.description }}</span>
+                {% else %}
+                    <span class="detail-value muted">
+                        {{ record.description|default:"No description" }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Spare Parts Used
+     ============================================================ -->
+
+<div class="detail-card">
+
+    <div class="parts-head">
+
+        <div class="parts-head-title">
+
+            <span class="section-icon section-icon--indigo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                    <path d="M12 22.08V12"/>
+                </svg>
+            </span>
+
+            <h2>Spare Parts Used</h2>
+
+            {% if record.parts_used.all %}
+                <span class="parts-count">{{ record.parts_used.all|length }}</span>
+            {% endif %}
+
+        </div>
+
+
+        <a href="{% url 'maintenance_add_part' record.id %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+            </svg>
+            Add Spare Part
+        </a>
+
+    </div>
+
+
+    {% if record.parts_used.all %}
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Part</th>
+                <th>Part Number</th>
+                <th>Quantity Used</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for item in record.parts_used.all %}
+
+            <tr>
+
+                <!-- Part name with icon -->
+                <td>
+
+                    <div class="part-cell">
+
+                        <span class="part-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                                <path d="M12 22.08V12"/>
+                            </svg>
+                        </span>
+
+                        <span class="part-name">
+                            {{ item.spare_part.name }}
+                        </span>
+
+                    </div>
+
+                </td>
+
+                <!-- Part number -->
+                <td>
+                    <span class="part-num">{{ item.spare_part.part_number }}</span>
+                </td>
+
+                <!-- Quantity -->
+                <td>
+                    <span class="qty-chip">{{ item.quantity_used }}</span>
+                </td>
+
+                <!-- Remove action -->
+                <td>
+
+                    <form method="post"
+                          action="{% url 'maintenance_remove_part' item.id %}"
+                          onsubmit="return confirm('Remove this spare part from the record?');">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="btn-remove">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                            Remove
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+    <div class="parts-empty">
+
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+            <path d="M12 22.08V12"/>
+        </svg>
+
+        <strong>No spare parts used</strong>
+        Add a spare part to this maintenance record.
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ============================================================
+     Action bar
+     ============================================================ -->
+
+<div class="action-bar">
+
+    <a href="{% url 'maintenance_update' record.id %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Edit
+    </a>
+
+    <a href="{% url 'maintenance_delete' record.id %}" class="btn btn-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+        </svg>
+        Delete
+    </a>
+
+    <span class="spacer"></span>
+
+    <a href="{% url 'maintenance_list' %}" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="m12 19-7-7 7-7"/>
+        </svg>
+        Back
+    </a>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       Colour-code the status badge by its label text.
+       Works with any wording from get_status_display().
+       ============================================================ */
+
+    (function () {
+
+        var COLORS = {
+            green: [
+                "completed", "complete", "done", "paid", "approved",
+                "delivered", "active", "available", "fixed"
+            ],
+            blue: [
+                "in progress", "in-progress", "ongoing",
+                "scheduled", "confirmed", "assigned", "processing"
+            ],
+            amber: [
+                "pending", "waiting", "on hold", "on-hold",
+                "delayed", "partial", "draft", "new"
+            ],
+            red: [
+                "cancelled", "canceled", "rejected", "failed",
+                "overdue", "urgent", "expired"
+            ]
+        };
+
+        var lookup = {};
+
+        Object.keys(COLORS).forEach(function (color) {
+            COLORS[color].forEach(function (word) { lookup[word] = color; });
+        });
+
+        document.querySelectorAll(".badge").forEach(function (badge) {
+
+            var text = badge.textContent.trim().toLowerCase();
+            if (!text) return;
+
+            var color = lookup[text];
+
+            if (!color) {
+                Object.keys(lookup).some(function (word) {
+                    if (text.indexOf(word) !== -1) {
+                        color = lookup[word];
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            if (color) badge.classList.add("badge--" + color);
+        });
+
+    })();
+</script>
+{% endblock %}

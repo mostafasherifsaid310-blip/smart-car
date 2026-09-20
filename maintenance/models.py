@@ -17,6 +17,17 @@ class MaintenanceRecord(models.Model):
     cost=models.DecimalField(max_digits=10,decimal_places=2,default=0)
     status=models.CharField(max_length=30,choices=STATUS_CHOICES,default="completed")
     created_at=models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        constraints = [models.CheckConstraint(
+                condition=models.Q(mileage__gte=0),name="maintenance_mileage_gte_0",),
+            models.CheckConstraint(
+                condition=models.Q(cost__gte=0),name="maintenance_cost_gte_0",),]
+
+        indexes = [models.Index(fields=["car"]),
+            models.Index(fields=["service_date"]),
+            models.Index(fields=["status"]),]
+
 
     def __str__(self):
         return f"{self.car} - {self.service_type}"
@@ -29,8 +40,10 @@ class MaintenancePart(models.Model):
     class Meta:
         constraints=[models.UniqueConstraint(
                 fields=["maintenance", "spare_part"],
-                name="unique_maintenance_spare_part")]
+                name="unique_maintenance_spare_part"),
+                models.CheckConstraint(
+                condition=models.Q(quantity_used__gte=1),
+                name="maintenance_part_quantity_gte_1",),]
 
     def __str__(self):
-        return (f"{self.maintenance} - "
-        f"{self.spare_part.name}")
+        return f"{self.maintenance} - {self.spare_part.name}"

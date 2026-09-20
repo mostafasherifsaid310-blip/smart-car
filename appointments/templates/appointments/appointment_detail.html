@@ -1,0 +1,725 @@
+{% extends "base.html" %}
+
+{% block title %}
+Appointment Details | Smart Car
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       Hero header
+       ============================================================ */
+
+    .appt-hero {
+        position: relative;
+        overflow: hidden;
+
+        max-width: 980px;
+
+        padding: 28px 32px;
+
+        color: #fff;
+
+        border-radius: 18px;
+
+        background:
+            linear-gradient(120deg, #064e3b 0%, #047857 55%, #10b981 100%);
+
+        box-shadow: 0 18px 40px -24px rgba(6, 78, 59, .9);
+
+        animation: rise .35s ease backwards;
+    }
+
+    .appt-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+
+        background:
+            radial-gradient(420px 200px at 90% -20%,
+                            rgba(52, 211, 153, .45), transparent 70%),
+            radial-gradient(360px 200px at 5% 130%,
+                            rgba(110, 231, 183, .30), transparent 70%);
+
+        pointer-events: none;
+    }
+
+    .appt-hero-inner {
+        position: relative;
+        z-index: 1;
+
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .appt-hero-avatar {
+        width: 68px;
+        height: 68px;
+        flex: 0 0 68px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 18px;
+
+        color: #ecfdf5;
+
+        background:
+            linear-gradient(135deg,
+                            rgba(255, 255, 255, .28),
+                            rgba(255, 255, 255, .08));
+
+        border: 1px solid rgba(255, 255, 255, .28);
+
+        backdrop-filter: blur(6px);
+    }
+
+    .appt-hero-avatar svg { width: 32px; height: 32px; }
+
+    .appt-hero-info { min-width: 0; flex: 1; }
+
+    .appt-hero-info h1 {
+        margin: 0;
+
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
+
+    .appt-hero-info p {
+        margin: 6px 0 0;
+
+        font-size: 13.5px;
+        color: rgba(255, 255, 255, .75);
+    }
+
+    .appt-hero-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        margin-top: 12px;
+    }
+
+    .hero-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 5px 12px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 600;
+
+        color: #d1fae5;
+
+        background: rgba(255, 255, 255, .10);
+        border: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    .hero-chip svg { width: 14px; height: 14px; }
+
+    /* Status pill */
+    .hero-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 6px 14px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+        font-weight: 700;
+
+        color: #ecfdf5;
+        background: rgba(255, 255, 255, .18);
+        border: 1px solid rgba(255, 255, 255, .42);
+    }
+
+    .hero-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, .32);
+    }
+
+
+    /* ============================================================
+       Detail card
+       ============================================================ */
+
+    .detail-card {
+        max-width: 980px;
+
+        margin-top: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #e6eaf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, .06),
+            0 14px 32px -16px rgba(16, 24, 40, .22);
+
+        overflow: hidden;
+    }
+
+    .section-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 18px 26px;
+
+        background: linear-gradient(#ffffff, #fbfcfe);
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .section-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 11px;
+    }
+
+    .section-icon svg { width: 19px; height: 19px; }
+
+    .section-icon--green { color: #047857; background: #e6f8f1; }
+
+    .section-head h2 {
+        margin: 0;
+
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: .1px;
+    }
+
+    .section-body { padding: 22px 26px 26px; }
+
+
+    /* ============================================================
+       Detail grid
+       ============================================================ */
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        padding: 14px 16px;
+
+        background: #f8fafc;
+
+        border: 1px solid #eef2f7;
+        border-radius: 12px;
+
+        transition: background .18s ease, border-color .18s ease;
+    }
+
+    .detail-item:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+
+    /* Full-width items */
+    .detail-item--wide { grid-column: 1 / -1; }
+
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+
+        color: #6b7280;
+    }
+
+    .detail-label svg {
+        width: 14px;
+        height: 14px;
+        color: #94a3b8;
+    }
+
+    .detail-value {
+        font-size: 15.5px;
+        font-weight: 600;
+        color: #0f172a;
+
+        font-variant-numeric: tabular-nums;
+
+        word-break: break-word;
+    }
+
+    .detail-value.muted {
+        font-weight: 500;
+        color: #64748b;
+        font-style: italic;
+    }
+
+    /* Date & time chips */
+    .date-chip,
+    .time-chip {
+        display: inline-block;
+
+        padding: 4px 12px;
+
+        border-radius: 9px;
+
+        font-size: 13px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .date-chip {
+        color: #1e3a8a;
+        background: #eef2ff;
+        border: 1px solid #dbe3ff;
+    }
+
+    .time-chip {
+        color: #065f46;
+        background: #e7f8f0;
+        border: 1px solid #c6ecdb;
+        letter-spacing: .02em;
+    }
+
+    /* Status badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 4px 11px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+
+        color: #475569;
+        background: #eef2f7;
+        border: 1px solid #e2e8f0;
+    }
+
+    .badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .badge--green { color: #047857; background: #e7f8f0; border-color: #c6ecdb; }
+    .badge--amber { color: #b45309; background: #fff4e0; border-color: #fbe0b4; }
+    .badge--blue  { color: #0369a1; background: #e6f5ff; border-color: #bfe6fb; }
+    .badge--red   { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+
+
+    /* ============================================================
+       Action bar
+       ============================================================ */
+
+    .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+
+        max-width: 980px;
+
+        margin-top: 24px;
+    }
+
+    .action-bar .btn svg { width: 16px; height: 16px; }
+
+    /* Softer Back button */
+    .action-bar .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    .action-bar .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    /* Push Back to the right */
+    .action-bar .spacer { margin-left: auto; }
+
+
+    /* ============================================================
+       Motion
+       ============================================================ */
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .appt-hero { animation: none; }
+    }
+
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+
+    @media (max-width: 560px) {
+
+        .appt-hero { padding: 22px; }
+
+        .appt-hero-avatar { width: 58px; height: 58px; flex: 0 0 58px; }
+        .appt-hero-avatar svg { width: 26px; height: 26px; }
+
+        .appt-hero-info h1 { font-size: 19px; }
+
+        .section-body { padding: 18px 20px 22px; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     Hero header
+     ============================================================ -->
+
+<div class="appt-hero">
+
+    <div class="appt-hero-inner">
+
+        <span class="appt-hero-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                <path d="M8 2.5v4"/>
+                <path d="M16 2.5v4"/>
+                <path d="M3 10h18"/>
+                <path d="m9 15.5 2 2 3.5-3.5"/>
+            </svg>
+        </span>
+
+        <div class="appt-hero-info">
+
+            <h1>Appointment Details</h1>
+
+            <p>
+                {{ appointment.car }}
+                &middot; Service appointment overview
+            </p>
+
+            <div class="appt-hero-chips">
+
+                <span class="hero-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    {{ appointment.technician.name }}
+                </span>
+
+                <span class="hero-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                        <path d="M8 2.5v4"/>
+                        <path d="M16 2.5v4"/>
+                        <path d="M3 10h18"/>
+                    </svg>
+                    {{ appointment.appointment_date }}
+                </span>
+
+                <span class="hero-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3.2 1.9"/>
+                    </svg>
+                    {{ appointment.appointment_time }}
+                </span>
+
+                <span class="hero-status">
+                    {{ appointment.get_status_display }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Appointment details
+     ============================================================ -->
+
+<div class="detail-card">
+
+    <div class="section-head">
+
+        <span class="section-icon section-icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        </span>
+
+        <h2>Appointment Details</h2>
+
+    </div>
+
+
+    <div class="section-body">
+
+        <div class="detail-grid">
+
+            <!-- Car -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 17h14"/>
+                        <path d="M4 17v-4.2a2 2 0 0 1 .2-.9l2-4.4A2 2 0 0 1 8 6.3h8a2 2 0 0 1 1.8 1.2l2 4.4a2 2 0 0 1 .2.9V17"/>
+                    </svg>
+                    Car
+                </span>
+                <span class="detail-value">{{ appointment.car }}</span>
+            </div>
+
+
+            <!-- Technician -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    Technician
+                </span>
+                <span class="detail-value">{{ appointment.technician.name }}</span>
+            </div>
+
+
+            <!-- Service -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    Service
+                </span>
+                <span class="detail-value">{{ appointment.service_type }}</span>
+            </div>
+
+
+            <!-- Date -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4.5" width="18" height="17" rx="2.5"/>
+                        <path d="M8 2.5v4"/>
+                        <path d="M16 2.5v4"/>
+                        <path d="M3 10h18"/>
+                    </svg>
+                    Date
+                </span>
+                <span class="detail-value">
+                    <span class="date-chip">{{ appointment.appointment_date }}</span>
+                </span>
+            </div>
+
+
+            <!-- Time -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3.2 1.9"/>
+                    </svg>
+                    Time
+                </span>
+                <span class="detail-value">
+                    <span class="time-chip">{{ appointment.appointment_time }}</span>
+                </span>
+            </div>
+
+
+            <!-- Status -->
+            <div class="detail-item">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    Status
+                </span>
+                <span class="detail-value">
+                    <span class="badge">{{ appointment.get_status_display }}</span>
+                </span>
+            </div>
+
+
+            <!-- Notes (full width) -->
+            <div class="detail-item detail-item--wide">
+                <span class="detail-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5h16"/>
+                        <path d="M4 10h16"/>
+                        <path d="M4 15h10"/>
+                    </svg>
+                    Notes
+                </span>
+
+                {% if appointment.notes %}
+                    <span class="detail-value">{{ appointment.notes }}</span>
+                {% else %}
+                    <span class="detail-value muted">
+                        {{ appointment.notes|default:"No notes" }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     Action bar
+     ============================================================ -->
+
+<div class="action-bar">
+
+    <a href="{% url 'appointment_update' appointment.id %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Edit Appointment
+    </a>
+
+    <a href="{% url 'appointment_delete' appointment.id %}" class="btn btn-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+        </svg>
+        Delete Appointment
+    </a>
+
+    <span class="spacer"></span>
+
+    <a href="{% url 'appointment_list' %}" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="m12 19-7-7 7-7"/>
+        </svg>
+        Back to Appointments
+    </a>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       Colour-code the status badge by its label text.
+       ============================================================ */
+
+    (function () {
+
+        var COLORS = {
+            green: [
+                "completed", "complete", "done", "paid", "approved",
+                "delivered", "active", "available", "confirmed", "scheduled"
+            ],
+            blue: [
+                "in progress", "in-progress", "ongoing",
+                "booked", "assigned", "processing"
+            ],
+            amber: [
+                "pending", "waiting", "on hold", "on-hold",
+                "delayed", "partial", "draft", "new", "rescheduled"
+            ],
+            red: [
+                "cancelled", "canceled", "rejected", "failed",
+                "overdue", "urgent", "expired", "no show", "no-show"
+            ]
+        };
+
+        var lookup = {};
+
+        Object.keys(COLORS).forEach(function (color) {
+            COLORS[color].forEach(function (word) { lookup[word] = color; });
+        });
+
+        document.querySelectorAll(".badge").forEach(function (badge) {
+
+            var text = badge.textContent.trim().toLowerCase();
+            if (!text) return;
+
+            var color = lookup[text];
+
+            if (!color) {
+                Object.keys(lookup).some(function (word) {
+                    if (text.indexOf(word) !== -1) {
+                        color = lookup[word];
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            if (color) badge.classList.add("badge--" + color);
+        });
+
+    })();
+</script>
+{% endblock %}

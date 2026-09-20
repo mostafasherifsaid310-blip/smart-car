@@ -10,6 +10,23 @@ class SparePart(models.Model):
     quantity=models.PositiveIntegerField(default=0)
     minimum_stock=models.PositiveIntegerField(default=0)
     created_at=models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0),
+                name="spare_part_price_gte_0",),
+            models.CheckConstraint(
+                condition=models.Q(quantity__gte=0),
+                name="spare_part_quantity_gte_0",),
+            models.CheckConstraint(
+                condition=models.Q(minimum_stock__gte=0),
+                name="spare_part_minimum_stock_gte_0",),]
+
+        indexes = [models.Index(fields=["name"]),
+            models.Index(fields=["quantity"]),
+            models.Index(fields=["minimum_stock"]),]
+
 
     def __str__(self):
         return f"{self.name} ({self.part_number})"

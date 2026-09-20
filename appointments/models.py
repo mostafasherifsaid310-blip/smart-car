@@ -20,6 +20,15 @@ class Appointment(models.Model):
     status=models.CharField(max_length=30,choices=STATUS_CHOICES,default="pending")
     notes=models.TextField(blank=True)
     created_at=models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["technician","appointment_date","appointment_time",],
+            name="unique_technician_appointment_slot",),]
+
+        indexes = [models.Index(fields=["appointment_date"]),
+        models.Index(fields=["status"]),
+        models.Index(fields=["technician", "appointment_date"]),]
 
     def __str__(self):
-        return f"{self.car} - {self.appointment_date}"
+        return f"{self.car} - {self.appointment_date} {self.appointment_time}"
