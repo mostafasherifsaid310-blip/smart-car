@@ -1,8 +1,7 @@
 from django.db import models
 from cars.models import Car
 from technicians.models import Technician
-
-
+from spare_parts.models import SparePart
 class MaintenanceRecord(models.Model):
     STATUS_CHOICES=[
         ("completed", "Completed"),
@@ -24,7 +23,7 @@ class MaintenanceRecord(models.Model):
 
 class MaintenancePart(models.Model):
     maintenance=models.ForeignKey(MaintenanceRecord,on_delete=models.CASCADE,related_name="parts_used")
-    spare_part=models.ForeignKey("spare_parts.SparePart",on_delete=models.PROTECT,related_name="maintenance_usages")
+    spare_part=models.ForeignKey(SparePart,on_delete=models.PROTECT,related_name="maintenance_usages")
     quantity_used = models.PositiveIntegerField()
 
     class Meta:
@@ -33,4 +32,5 @@ class MaintenancePart(models.Model):
                 name="unique_maintenance_spare_part")]
 
     def __str__(self):
-        return f"{self.spare_part} x {self.quantity_used}"
+        return (f"{self.maintenance} - "
+        f"{self.spare_part.name}")

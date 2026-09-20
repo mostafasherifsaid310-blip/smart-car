@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spare Part Details</title>
+</head>
+<body>
+
+<h1>Spare Part Details</h1>
+
+<p>
+    <strong>Name:</strong>
+    {{ part.name }}
+</p>
+
+<p>
+    <strong>Part Number:</strong>
+    {{ part.part_number }}
+</p>
+
+<p>
+    <strong>Description:</strong>
+    {{ part.description|default:"No description" }}
+</p>
+
+<p>
+    <strong>Price:</strong>
+    {{ part.price }}
+</p>
+
+<p>
+    <strong>Quantity:</strong>
+    {{ part.quantity }}
+</p>
+
+<p>
+    <strong>Minimum Stock:</strong>
+    {{ part.minimum_stock }}
+</p>
+
+{% if part.quantity <= part.minimum_stock %}
+
+<p>
+    <strong>Warning:</strong>
+    Low Stock!
+</p>
+
+{% endif %}
+
+<hr>
+
+<a href="{% url 'spare_part_update' part.id %}">
+    Edit
+</a>
+
+|
+
+<a href="{% url 'spare_part_delete' part.id %}">
+    Delete
+</a>
+
+|
+
+<a href="{% url 'spare_part_list' %}">
+    Back
+</a>
+
+</body>
+</html>

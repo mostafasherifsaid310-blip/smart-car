@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spare Parts</title>
+</head>
+<body>
+
+<h1>Spare Parts Inventory</h1>
+
+{% if user.groups.all %}
+
+    {% if user.is_superuser %}
+
+        <a href="{% url 'spare_part_create' %}">
+            Add Spare Part
+        </a>
+
+    {% endif %}
+
+{% endif %}
+
+<hr>
+
+{% if parts %}
+
+<table border="1" cellpadding="10">
+
+    <tr>
+        <th>Name</th>
+        <th>Part Number</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Minimum Stock</th>
+        <th>Stock Status</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for part in parts %}
+
+    <tr>
+
+        <td>
+            {{ part.name }}
+        </td>
+
+        <td>
+            {{ part.part_number }}
+        </td>
+
+        <td>
+            {{ part.price }}
+        </td>
+
+        <td>
+            {{ part.quantity }}
+        </td>
+
+        <td>
+            {{ part.minimum_stock }}
+        </td>
+
+        <td>
+
+            {% if part.quantity <= part.minimum_stock %}
+                LOW STOCK
+            {% else %}
+                Available
+            {% endif %}
+
+        </td>
+
+        <td>
+
+    <a href="{% url 'spare_part_detail' part.id %}">
+        View
+    </a>
+
+    {% if user.is_superuser or user.groups.all.0.name == "Admin" or user.groups.all.0.name == "Manager" %}
+
+        |
+
+        <a href="{% url 'spare_part_update' part.id %}">
+            Edit
+        </a>
+
+        |
+
+        <a href="{% url 'spare_part_delete' part.id %}">
+            Delete
+        </a>
+
+    {% endif %}
+
+</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No spare parts found.</p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'maintenance_list' %}">
+    Maintenance
+</a>
+
+</body>
+</html>

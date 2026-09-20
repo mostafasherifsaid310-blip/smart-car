@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Maintenance Details</title>
+</head>
+<body>
+
+<h1>Maintenance Details</h1>
+
+<p>
+    <strong>Car:</strong>
+    {{ record.car.brand }} {{ record.car.model }}
+</p>
+
+<p>
+    <strong>License Plate:</strong>
+    {{ record.car.license_plate }}
+</p>
+
+<p>
+    <strong>Technician:</strong>
+    {{ record.technician.name }}
+</p>
+
+<p>
+    <strong>Specialization:</strong>
+    {{ record.technician.specialization }}
+</p>
+
+<p>
+    <strong>Service Type:</strong>
+    {{ record.service_type }}
+</p>
+
+<p>
+    <strong>Description:</strong>
+    {{ record.description|default:"No description" }}
+</p>
+
+<p>
+    <strong>Service Date:</strong>
+    {{ record.service_date }}
+</p>
+
+<p>
+    <strong>Mileage:</strong>
+    {{ record.mileage }}
+</p>
+
+<p>
+    <strong>Cost:</strong>
+    {{ record.cost }}
+</p>
+
+<p>
+    <strong>Status:</strong>
+    {{ record.get_status_display }}
+</p>
+
+<h2>Spare Parts Used</h2>
+
+<a href="{% url 'maintenance_add_part' record.id %}">
+    Add Spare Part
+</a>
+
+{% if record.parts_used.all %}
+
+<table border="1" cellpadding="10">
+
+    <tr>
+        <th>Part</th>
+        <th>Part Number</th>
+        <th>Quantity Used</th>
+        <th>Action</th>
+    </tr>
+
+    {% for item in record.parts_used.all %}
+
+    <tr>
+
+        <td>
+            {{ item.spare_part.name }}
+        </td>
+
+        <td>
+            {{ item.spare_part.part_number }}
+        </td>
+
+        <td>
+            {{ item.quantity_used }}
+        </td>
+
+        <td>
+
+            <form
+                method="post"
+                action="{% url 'maintenance_remove_part' item.id %}"
+            >
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Remove
+                </button>
+
+            </form>
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>
+    No spare parts used.
+</p>
+
+{% endif %}
+<hr>
+
+<a href="{% url 'maintenance_update' record.id %}">
+    Edit
+</a>
+
+|
+
+<a href="{% url 'maintenance_delete' record.id %}">
+    Delete
+</a>
+
+|
+
+<a href="{% url 'maintenance_list' %}">
+    Back
+</a>
+
+</body>
+</html>
