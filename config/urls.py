@@ -36,4 +36,5 @@ urlpatterns = [
     path("spare-parts/",include("spare_parts.urls")),
     path("appointments/", include("appointments.urls")),
     path("dashboard/", include("dashboard.urls")),
-    path("technicians/",include("technicians.urls"),),]
+    path("technicians/",include("technicians.urls")),
+    path("ai/", include("ai_agent.urls")),]

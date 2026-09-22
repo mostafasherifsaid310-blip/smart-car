@@ -100,7 +100,6 @@
             z-index: 50;
         }
 
-        /* Custom scrollbar */
         .sidebar::-webkit-scrollbar { width: 8px; }
         .sidebar::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, .12);
@@ -157,6 +156,209 @@
 
             color: var(--sidebar-mut);
         }
+
+
+        /* ============================================================
+           AI Assistant — flagship highlight
+           ============================================================ */
+
+        .ai-wrap {
+            position: relative;
+
+            margin: 0 2px 22px;
+        }
+
+        .nav-link--ai {
+            position: relative;
+            overflow: hidden;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 12px 14px;
+
+            border-radius: 12px;
+
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .01em;
+
+            color: #ffffff;
+            text-decoration: none;
+
+            background:
+                linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #ec4899 100%);
+
+            border: 1px solid rgba(255, 255, 255, .18);
+
+            box-shadow:
+                0 10px 24px -12px rgba(99, 102, 241, .95),
+                0 2px 8px -4px rgba(236, 72, 153, .55),
+                inset 0 0 0 1px rgba(255, 255, 255, .14);
+
+            transition:
+                transform .22s ease,
+                box-shadow .25s ease,
+                filter .25s ease;
+        }
+
+        /* Shimmer sweep animation */
+        .nav-link--ai::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -70%;
+
+            width: 60%;
+            height: 100%;
+
+            background:
+                linear-gradient(100deg,
+                                transparent 0%,
+                                rgba(255, 255, 255, .35) 50%,
+                                transparent 100%);
+
+            transform: skewX(-18deg);
+
+            animation: aiShimmer 3.2s ease-in-out infinite;
+
+            pointer-events: none;
+        }
+
+        /* Soft outer glow ring */
+        .nav-link--ai::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(135deg,
+                                rgba(139, 92, 246, .55),
+                                rgba(236, 72, 153, .45));
+
+            filter: blur(10px);
+
+            opacity: 0;
+            z-index: -1;
+
+            transition: opacity .28s ease;
+        }
+
+        .nav-link--ai:hover {
+            transform: translateY(-2px);
+
+            filter: brightness(1.06);
+
+            box-shadow:
+                0 16px 32px -12px rgba(99, 102, 241, .95),
+                0 4px 12px -4px rgba(236, 72, 153, .65),
+                inset 0 0 0 1px rgba(255, 255, 255, .22);
+        }
+
+        .nav-link--ai:hover::after { opacity: 1; }
+
+        .nav-link--ai .ico {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+
+            display: grid;
+            place-items: center;
+
+            color: #ffffff;
+
+            transition: transform .35s ease;
+        }
+
+        .nav-link--ai .ico svg {
+            width: 20px;
+            height: 20px;
+
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, .55));
+        }
+
+        .nav-link--ai:hover .ico {
+            transform: rotate(-10deg) scale(1.08);
+        }
+
+        .ai-label {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* "AI" tag */
+        .ai-tag {
+            display: inline-block;
+
+            margin-left: 6px;
+            padding: 1px 7px;
+
+            border-radius: 999px;
+
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: .12em;
+
+            color: #ffffff;
+
+            background: rgba(255, 255, 255, .22);
+            border: 1px solid rgba(255, 255, 255, .38);
+
+            vertical-align: middle;
+        }
+
+        /* Live pulse dot */
+        .ai-pulse {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, .75);
+
+            animation: aiPulse 1.8s infinite;
+        }
+
+        @keyframes aiShimmer {
+            0%   { left: -70%; }
+            55%  { left: 130%; }
+            100% { left: 130%; }
+        }
+
+        @keyframes aiPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, .75);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        /* Small caption under the button */
+        .ai-caption {
+            display: block;
+
+            margin: 7px 4px 0;
+
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+
+            color: var(--sidebar-mut);
+
+            text-align: center;
+        }
+
 
         /* -------- Nav sections -------- */
 
@@ -223,7 +425,6 @@
 
         .nav-link:hover .ico { color: #a5b4fc; }
 
-        /* Active state */
         .nav-link.active {
             color: #fff;
 
@@ -251,7 +452,6 @@
             background: linear-gradient(180deg, #818cf8, #6366f1);
         }
 
-        /* Logout variant */
         .nav-link.nav-link--danger:hover {
             background: rgba(220, 38, 38, .12);
             color: #fecaca;
@@ -287,8 +487,6 @@
 
             margin-left: var(--sidebar-w);
         }
-
-        /* -------- Navbar -------- */
 
         .navbar {
             position: sticky;
@@ -332,8 +530,6 @@
 
             box-shadow: 0 0 0 4px rgba(34, 197, 94, .18);
         }
-
-        /* -------- User info -------- */
 
         .user-info {
             display: flex;
@@ -419,11 +615,7 @@
             max-width: 1500px;
         }
 
-        /* Utility styles the child templates can reuse */
-
-        .page-header {
-            margin-bottom: 25px;
-        }
+        .page-header { margin-bottom: 25px; }
 
         .page-header h1 {
             margin-bottom: 6px;
@@ -437,8 +629,6 @@
             color: var(--muted);
             font-size: 14.5px;
         }
-
-        /* Cards */
 
         .cards {
             display: grid;
@@ -490,8 +680,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* Tables */
-
         .table-container {
             margin-bottom: 25px;
 
@@ -539,8 +727,6 @@
         tbody tr { transition: background .18s ease; }
         tbody tr:hover { background: #f8fafc; }
         tbody tr:last-child td { border-bottom: none; }
-
-        /* Buttons */
 
         .btn {
             display: inline-flex;
@@ -599,6 +785,8 @@
             .logo-text,
             .nav-title,
             .sidebar-foot,
+            .ai-caption,
+            .ai-label,
             .nav-link span.label { display: none; }
 
             .logo { justify-content: center; margin-bottom: 22px; }
@@ -609,6 +797,18 @@
             }
 
             .nav-link.active::before { left: -12px; }
+
+            /* Compact AI button on mobile */
+            .ai-wrap { margin: 0 0 18px; }
+
+            .nav-link--ai {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .nav-link--ai .ai-tag { display: none; }
+
+            .ai-pulse { display: none; }
 
             .navbar { padding: 0 18px; }
 
@@ -622,10 +822,6 @@
         @media (max-width: 480px) {
             .logout span { display: none; }
         }
-
-        /* ============================================================
-           Motion preferences
-           ============================================================ */
 
         @media (prefers-reduced-motion: reduce) {
             *,
@@ -669,6 +865,43 @@
                 Smart Car
                 <small>Service Suite</small>
             </span>
+        </div>
+
+
+        <!-- ============================================================
+             AI Assistant — highlighted
+             ============================================================ -->
+
+        <div class="ai-wrap">
+
+            <a href="{% url 'ai_chat' %}" class="nav-link--ai">
+
+                <span class="ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3v2"/>
+                        <path d="M5.5 5.5 4 4"/>
+                        <path d="M18.5 5.5 20 4"/>
+                        <rect x="4" y="8" width="16" height="12" rx="3"/>
+                        <circle cx="9" cy="13.5" r="1" fill="currentColor" stroke="none"/>
+                        <circle cx="15" cy="13.5" r="1" fill="currentColor" stroke="none"/>
+                        <path d="M10 17h4"/>
+                        <path d="M2 13h2"/>
+                        <path d="M20 13h2"/>
+                    </svg>
+                </span>
+
+                <span class="ai-label">
+                    AI Assistant
+                    <span class="ai-tag">AI</span>
+                </span>
+
+                <span class="ai-pulse"></span>
+
+            </a>
+
+            <span class="ai-caption">Ask anything</span>
+
         </div>
 
 
@@ -813,7 +1046,6 @@
 
     <main class="main">
 
-        <!-- Navbar -->
         <nav class="navbar">
 
             <div class="navbar-title">
@@ -847,7 +1079,6 @@
         </nav>
 
 
-        <!-- Page Content -->
         <section class="content">
 
             {% block content %}
