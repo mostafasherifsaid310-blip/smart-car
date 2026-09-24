@@ -5,7 +5,7 @@ from .models import Appointment
 from cars.models import Car
 from technicians.models import Technician
 from datetime import date, time
-
+# from appointments.services import get_appointments_for_user
 
 def get_user_appointments(user):
     """
@@ -220,4 +220,93 @@ def check_appointment_slot_for_user(
         technician=technician,
         appointment_date=appointment_date,
         appointment_time=appointment_time,
-    )    
+    ) 
+    
+def get_my_appointments(user):
+    """
+    Return all appointments belonging to the authenticated user.
+    Customer can only see appointments for their own cars.
+    Admin and Manager can see all appointments.
+    """
+
+    if not user or not user.is_authenticated:
+        raise ValidationError("Authentication required.")
+
+    if is_admin(user) or is_manager(user):
+        appointments = (
+            Appointment.objects
+            .select_related("car", "technician")
+            .order_by("appointment_date", "appointment_time")
+        )
+    else:
+        appointments = (
+            Appointment.objects
+            .select_related("car", "technician")
+            .filter(car__owner=user)
+            .order_by("appointment_date", "appointment_time")
+        )
+
+    return {
+        "appointments": [
+            {
+                "id": appointment.id,
+                "car": f"{appointment.car.brand} {appointment.car.model}",
+                "license_plate": appointment.car.license_plate,
+                "technician": appointment.technician.name,
+                "service_type": appointment.service_type,
+                "appointment_date": str(appointment.appointment_date),
+                "appointment_time": str(appointment.appointment_time),
+                "status": appointment.status,
+                "notes": appointment.notes,
+            }
+            for appointment in appointments
+        ]
+    }  
+    
+# def get_my_appointments(user):
+#     return get_appointments_for_user(user) 
+
+def get_my_appointments(user):
+    if not user or not user.is_authenticated:
+        raise ValidationError("Authentication required.")
+
+    if is_admin(user) or is_manager(user):
+        appointments = (
+            Appointment.objects
+            .select_related("car", "technician")
+            .order_by(
+                "appointment_date",
+                "appointment_time",
+            )
+        )
+    else:
+        appointments = (
+            Appointment.objects
+            .select_related("car", "technician")
+            .filter(car__owner=user)
+            .order_by(
+                "appointment_date",
+                "appointment_time",
+            )
+        )
+
+    return {
+        "appointments": [
+            {
+                "id": appointment.id,
+                "car": f"{appointment.car.brand} {appointment.car.model}",
+                "license_plate": appointment.car.license_plate,
+                "technician": appointment.technician.name,
+                "service_type": appointment.service_type,
+                "appointment_date": str(
+                    appointment.appointment_date
+                ),
+                "appointment_time": str(
+                    appointment.appointment_time
+                ),
+                "status": appointment.status,
+                "notes": appointment.notes,
+            }
+            for appointment in appointments
+        ]
+    }        

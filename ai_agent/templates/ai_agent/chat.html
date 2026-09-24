@@ -1027,7 +1027,7 @@ chatForm.addEventListener("submit", async function (event) {
         if (data.success === false) {
 
             addMessage(
-                data.error || data.message || "Something went wrong.",
+                data.answer || data.error || data.message || "Something went wrong.",
                 "ai-message"
             );
 
@@ -1038,13 +1038,21 @@ chatForm.addEventListener("submit", async function (event) {
 
         let aiResponse = "";
 
-        if (data.answer) {
-            aiResponse = data.answer;
-        } else if (data.message) {
-            aiResponse = data.message;
-        } else {
-            aiResponse = JSON.stringify(data, null, 2);
-        }
+if (data.answer) {
+    if (typeof data.answer === "object") {
+        aiResponse = JSON.stringify(data.answer, null, 2);
+    } else {
+        aiResponse = data.answer;
+    }
+} else if (data.message) {
+    if (typeof data.message === "object") {
+        aiResponse = JSON.stringify(data.message, null, 2);
+    } else {
+        aiResponse = data.message;
+    }
+} else {
+    aiResponse = JSON.stringify(data, null, 2);
+}
 
         addMessage(aiResponse, "ai-message");
 

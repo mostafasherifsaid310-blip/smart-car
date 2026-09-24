@@ -393,6 +393,12 @@ Dashboard | Smart Car
      Low Stock Parts
      ============================================================ -->
 
+{% if is_manager_or_admin %}
+
+<!-- ============================================================
+     Low Stock Parts
+     ============================================================ -->
+
 <div class="section-head">
 
     <span class="section-icon section-icon--amber">
@@ -435,13 +441,19 @@ Dashboard | Smart Car
 
                 <td>{{ part.name }}</td>
 
-                <td class="num">{{ part.part_number }}</td>
-
-                <td>
-                    <span class="qty-low num">{{ part.quantity }}</span>
+                <td class="num">
+                    {{ part.part_number }}
                 </td>
 
-                <td class="num">{{ part.minimum_stock }}</td>
+                <td>
+                    <span class="qty-low num">
+                        {{ part.quantity }}
+                    </span>
+                </td>
+
+                <td class="num">
+                    {{ part.minimum_stock }}
+                </td>
 
             </tr>
 
@@ -450,10 +462,15 @@ Dashboard | Smart Car
             <tr>
                 <td colspan="4" class="empty-cell">
 
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.6"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                         <path d="m9 11 3 3L22 4"/>
+
                     </svg>
 
                     No low stock parts.
@@ -469,6 +486,7 @@ Dashboard | Smart Car
 
 </div>
 
+{% endif %}
 
 <!-- ============================================================
      Recent Maintenance
@@ -645,6 +663,204 @@ Dashboard | Smart Car
     </table>
 
 </div>
+
+{% if is_manager_or_admin %}
+
+<!-- ALL CUSTOMER CARS -->
+<section class="dashboard-section">
+    <div class="section-head">
+        <div>
+            <h2>All Customer Cars</h2>
+            <p>All cars registered by customers.</p>
+        </div>
+
+        <span class="pill">
+            {{ cars_count }}
+        </span>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Car</th>
+                    <th>Customer</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for car in cars %}
+                <tr>
+                    <td>
+                        <strong>{{ car }}</strong>
+                    </td>
+
+                    <td>
+                        {{ car.owner.username }}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="2">
+                        No cars found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- ALL MAINTENANCE RECORDS -->
+<section class="dashboard-section">
+    <div class="section-head">
+        <div>
+            <h2>All Maintenance Records</h2>
+            <p>Maintenance history for all customers.</p>
+        </div>
+
+        <span class="pill">
+            {{ maintenance_count }}
+        </span>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Car</th>
+                    <th>Service</th>
+                    <th>Technician</th>
+                    <th>Date</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for record in maintenance_records %}
+                <tr>
+                    <td>
+                        {{ record.car.owner.username }}
+                    </td>
+
+                    <td>
+                        {{ record.car }}
+                    </td>
+
+                    <td>
+                        {{ record.service_type }}
+                    </td>
+
+                    <td>
+                        {{ record.technician }}
+                    </td>
+
+                    <td>
+                        {{ record.service_date }}
+                    </td>
+
+                    <td>
+                        {{ record.cost }}
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            {{ record.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        No maintenance records found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- ALL APPOINTMENTS -->
+<section class="dashboard-section">
+    <div class="section-head">
+        <div>
+            <h2>All Customer Appointments</h2>
+            <p>Appointments for all customers.</p>
+        </div>
+
+        <span class="pill">
+            {{ appointments_count }}
+        </span>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Car</th>
+                    <th>Technician</th>
+                    <th>Service</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>
+                        {{ appointment.car.owner.username }}
+                    </td>
+
+                    <td>
+                        {{ appointment.car }}
+                    </td>
+
+                    <td>
+                        {{ appointment.technician }}
+                    </td>
+
+                    <td>
+                        {{ appointment.service_type }}
+                    </td>
+
+                    <td>
+                        {{ appointment.appointment_date }}
+                    </td>
+
+                    <td>
+                        {{ appointment.appointment_time }}
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            {{ appointment.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        No appointments found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endif %}
 
 {% endblock %}
 
