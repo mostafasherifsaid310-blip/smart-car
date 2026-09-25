@@ -2825,7 +2825,9 @@ class SmartCarAgent:
 
         if self.pending_action:
             pending_type = self.pending_action.get("type")
-
+            
+            if pending_type == "create_maintenance":
+                return self._continue_create_maintenance(user_input)
         # New independent request
             intent = self._detect_intent(user_input)
 
@@ -3023,6 +3025,7 @@ Allowed intents:
 - car_details
 - maintenance_history
 - maintenance_records_check
+- create_maintenance
 - my_appointments
 - upcoming_appointments
 - available_technicians
@@ -3115,6 +3118,7 @@ User request:
                 "car_details",
                 "maintenance_history",
                 "maintenance_records_check",
+                "create_maintenance",
                 "my_appointments",
                 "upcoming_appointments",
                 "available_technicians",
@@ -5691,8 +5695,24 @@ User:
             ),
         }
 
+        if self.user.groups.filter(name="Manager").exists():
+            return {
+        "success": False,
+        "tool_used": False,
+        "answer": (
+            "Managers cannot create maintenance records. "
+            "Only customers can create maintenance records."
+        ),
+    }
         if self.user.groups.filter(name="Admin").exists():
-            pass
+           return {
+        "success": False,
+        "tool_used": False,
+        "answer": (
+            "Admins cannot create maintenance records. "
+            "Only customers can create maintenance records."
+        ),
+    }
 
         try:
             cars_result = self.tools["get_my_cars"](
